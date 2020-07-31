@@ -9,7 +9,7 @@ prefix = "s3://nyc-tlc/trip data"
 keys = [x.split()[-1] for x in shell.run(f'aws s3 ls "{prefix}/"').splitlines() if 'yellow' in x]
 
 def download(key):
-    shell.run(f'aws s3 cp "{prefix}/{key}" - | tail -n+2 | cut -d, -f1-5 > /mnt/data/{key}')
+    shell.run(f'aws s3 cp "{prefix}/{key}" - | cut -d, -f1-5 > /mnt/data/{key}', echo=True)
 
 pool.thread.size = os.cpu_count()
 

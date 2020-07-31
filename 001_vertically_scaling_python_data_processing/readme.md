@@ -1,10 +1,10 @@
 ## vertically scaling python data processing
 
-processing inconveniently large data is a common task these days, and there are many tools and techniques available to help. in this post we are going to see how far we can take python on a single machine.
+processing inconveniently large data is a common task these days, and there are many tools and techniques available to help. here we are going to explore how far we can take python on a single machine.
 
-we will be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are working with this dataset from ec2.
+we will be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are following along.
 
-we will be using some [bash functions](https://gist.github.com/nathants/741b066af9faa15f3ed50ed6cf677d67), [aws tooling](https://github.com/nathants/cli-aws), and the [official aws cli](https://aws.amazon.com/cli/). you will need these if you want to follow along, but without much fuss one could use other tools.
+we will be using some [bash functions](https://gist.github.com/nathants/741b066af9faa15f3ed50ed6cf677d67), [aws tooling](https://github.com/nathants/cli-aws), and the [official aws cli](https://aws.amazon.com/cli/). one could also use other tools without much trouble.
 
 how is the dataset organized?
 
@@ -39,7 +39,7 @@ looks like a bunch of csv in a folder. are the prefixes constant?
     138 yellow
 ```
 
-nope. ok, so we probably want the yellow data, since it's biggest. lets check on the sizes first.
+nope. ok, so we probably want the yellow data. lets check on the sizes first.
 
 ```bash
 >> aws s3 ls 's3://nyc-tlc/trip data/' \
@@ -71,7 +71,7 @@ green   ......10,381,632,797
 yellow  .....251,267,607,652
 ```
 
-definitely the yellow dataset then. let's setup some variables to the dataset for easier bashing.
+definitely the yellow dataset then. let's setup some variables for easier bashing.
 
 ```bash
 >> prefix='s3://nyc-tlc/trip data'
@@ -136,6 +136,8 @@ import csv
 import sys
 import collections
 
+sys.stdin.readline() # skip the header
+
 result = collections.defaultdict(int)
 
 for cols in csv.reader(sys.stdin):
@@ -166,7 +168,7 @@ user    0m2.259s
 sys     0m0.162s
 ```
 
-let's see how pandas compares.
+let's see how [pandas](https://pandas.pydata.org/) compares.
 
 `passenger_counts_pandas.py`
 
@@ -195,7 +197,7 @@ user    0m2.085s
 sys     0m0.499s
 ```
 
-so it's about the same.
+about the same.
 
 if we know that our input is well formed, without quotes or escaped delimiters, we can just split on comma. let's try that.
 
@@ -242,7 +244,8 @@ that is a lot faster, about x4. if we can safely assume that the data is well fo
 let's run it again with x25 more data by recyling the input over and over. using tail we can skip the header in all but the first input.
 
 ```bash
->> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) | python3 passenger_counts.py &>/dev/null
+>> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) \
+    | python3 passenger_counts.py &>/dev/null
 
 real    0m16.295s
 user    0m16.101s
@@ -252,14 +255,15 @@ sys     0m2.771s
 what if we try [pypy](https://pypy.org)?
 
 ```bash
->> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) | pypy3 passenger_counts.py &>/dev/null
+>> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) \
+    | pypy3 passenger_counts.py &>/dev/null
 
 real    0m17.260s
 user    0m16.386s
 sys     0m4.011s
 ```
 
-well that's not ideal. let's see if we can apply performance lessons from compiled languages, which can be summarized as avoid allocations and do as little work as possible. the following file has had some [boiler plate](https://github.com/nathants/py-csv) elided, refer to the full [source](https://github.com/nathants/posts) for the rest.
+well that's not ideal. let's see if we can apply performance lessons from compiled languages, which can be summarized as avoid allocations and do as little work as possible. the following file has some [boiler plate](https://github.com/nathants/py-csv) elided, refer to the full [source](https://github.com/nathants/posts) for the details.
 
 `passenger_counts_inlined.py`
 
@@ -282,16 +286,17 @@ for passengers, count in result.items():
 ```
 
 ```bash
->> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) | pypy3 passenger_counts_inlined.py &>/dev/null
+>> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) \
+    | pypy3 passenger_counts_inlined.py &>/dev/null
 
 real    0m10.245s
 user    0m8.876s
 sys     0m3.108s
 ```
 
-almost a x2 improvement, we'll take it.
+a x2 improvement on user time, and nearly as much on wall clock. we'll take it.
 
-a final optimization we can make is to work with less data. since we know we only care about the first 5 columns, we can slice that out upstream.
+a final optimization we can make is to work with less data. since we know we only care about the first 5 columns, we can slice that out upstream using performant tools.
 
 ```bash
 >> time cat /tmp/taxi.csv | cut -d, -f1-5 > /tmp/taxi.csv.slim
@@ -302,7 +307,8 @@ sys     0m0.140s
 ```
 
 ```bash
->> time (cat /tmp/taxi.csv.slim; for i in {1..24}; do tail -n+2 /tmp/taxi.csv.slim; done) | pypy3 passenger_counts_inlined.py &>/dev/null
+>> time (cat /tmp/taxi.csv.slim; for i in {1..24}; do tail -n+2 /tmp/taxi.csv.slim; done) \
+    | pypy3 passenger_counts_inlined.py &>/dev/null
 
 real    0m3.764s
 user    0m3.196s
@@ -316,50 +322,42 @@ our first x2 improvement we got by avoiding allocations, and here we get another
 let's take another look at our improvements.
 
 ```bash
-time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) | python3 passenger_counts_stdlib.py &>/dev/null
+>> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) \
+    | python3 passenger_counts_stdlib.py &>/dev/null
 
 real    0m57.986s
 user    0m57.854s
 sys     0m3.610s
 
-time (cat /tmp/taxi.csv.slim; for i in {1..24}; do tail -n+2 /tmp/taxi.csv.slim; done) | pypy3 passenger_counts_inlined.py &>/dev/null
+>> time (cat /tmp/taxi.csv.slim; for i in {1..24}; do tail -n+2 /tmp/taxi.csv.slim; done) \
+    | pypy3 passenger_counts_inlined.py &>/dev/null
 
 real    0m3.726s
 user    0m3.401s
 sys     0m0.907s
 ```
 
-for context, let's take a look at doing the data selection inline.
+by doing less work, manually inlining code, avoiding allocations, and reducing the data set upstream, we can get sizeable performance improvements.
+
+just for fun, let's take a look at going even faster. we'll explore this in a later [post](https://nathants.com/posts)
 
 ```bash
->> time (cat /tmp/taxi.csv; for i in {1..24}; do tail -n+2 /tmp/taxi.csv; done) | cut -d, -f1-5 | pypy3 passenger_counts_inlined.py &>/dev/null
+>> cat /tmp/taxi.csv \
+    | tail -n+2 \
+    | bsv \
+    | bschema *,*,*,*,*,... --filter \
+    > /tmp/taxi.bsv.slim
 
-real    0m12.049s
-user    0m12.835s
-sys     0m4.625s
-```
-
-so by doing less work, manually inlining code, avoiding allocations, and reducing the data set upstream, we can get sizeable performance improvements.
-
-just for fun, let's take a look at going even faster. we'll explore this extensively in a later [post](https://github.com/nathants/posts)
-
-```bash
->> cat /tmp/taxi.csv | tail -n+2 | bsv | bschema *,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,* --filter > /tmp/taxi.bsv
-
->> time (for i in {1..25}; do cat /tmp/taxi.bsv; done) | bcut 4 | bcounteach-hash >/dev/null
-
-real    0m1.626s
-user    0m0.993s
-sys     0m2.469s
-
->> cat /tmp/taxi.csv | tail -n+2 | bsv | bschema *,*,*,*,*,... --filter > /tmp/taxi.bsv.slim
-
->> time (for i in {1..25}; do cat /tmp/taxi.bsv.slim; done) | bcut 4 | bcounteach-hash >/dev/null
+>> time (for i in {1..25}; do cat /tmp/taxi.bsv.slim; done) \
+    | bcut 4 \
+    | bcounteach-hash >/dev/null
 
 real    0m0.742s
 user    0m0.801s
 sys     0m0.950s
 ```
+
+having system time be the bottleneck is a really good problem to have.
 
 back to python, it's time to deploy and scale vertically. first we're going to need an ec2 instance. let's use a [i3en.24xlarge](https://aws.amazon.com/ec2/instance-types/i3en/) with archlinux.
 
@@ -375,7 +373,9 @@ us-east-1c 3.254400
 us-east-1d 3.254400
 us-east-1f 3.254400
 ```
-n
+
+this is gonna cost us $3/hour.
+
 our box is going to need s3 access to get the dataset, so let's make a role.
 
 ```bash
@@ -395,19 +395,23 @@ we are also going to need a vpc, keypair, and security group access for port 22.
 before we start, let's note the time.
 
 ```bash
-start=$(date +%s)
+>> start=$(date +%s)
 ```
 
 now it's time to spinup our box.
 
 ```bash
->> id=$(aws-ec2-new --type i3en.24xlarge --ami arch --profile s3-readonly test-box)
+>> time id=$(aws-ec2-new --type i3en.24xlarge --ami arch --profile s3-readonly test-box)
+
+real    1m10.673s
+user    0m2.510s
+sys     0m0.434s
 ```
 
-it takes a moment to format the instance store, so we wait.
+it takes a moment to format the instance store ssd, so we wait.
 
 ```bash
->> aws-ec2-ssh $id -yc 'while true; do sleep 1; df | grep /mnt && break; done'
+>> aws-ec2-ssh $id -yc 'while true; do sleep 1; df -h | grep /mnt && break; done'
 ```
 
 we aren't starting from a prebuilt ami, so we need to install some things.
@@ -419,19 +423,32 @@ we aren't starting from a prebuilt ami, so we need to install some things.
    '
 ```
 
-let's deploy our code.
+then we bump linux limits, reboot, and wait for the box to come back up.
+
+```bash
+>> aws-ec2-ssh $id -yc '
+       curl -s https://raw.githubusercontent.com/nathants/bootstraps/master/scripts/limits.sh | bash
+       sudo reboot
+   '
+
+>> aws-ec2-wait-for-ssh $id -y
+```
+
+baking an [ami](https://github.com/nathants/bootstraps/tree/master/amis) instead of starting from vanilla linux can save some bootstrap time.
+
+now let's deploy our code.
 
 ```bash
 >> aws-ec2-scp passenger_counts_inlined.py :/mnt $id -y
 ```
 
-our data pipeling is going to be:
+our data pipeling is going to look like:
 - fetch the dataset
 - select the columns we need
 - group by and count
 - merge results
 
-step 1 will fetch, drop the header, and select passengers. this pipeline will run once per input key, and will run in parallel on all cpus.
+step 1 will fetch and select passengers. this pipeline will run once per input key, and will run in parallel on all cpus.
 
 `download_and_select.py`
 
@@ -447,7 +464,7 @@ prefix = "s3://nyc-tlc/trip data"
 keys = [x.split()[-1] for x in shell.run(f'aws s3 ls "{prefix}/"').splitlines() if 'yellow' in x]
 
 def download(key):
-    shell.run(f'aws s3 cp "{prefix}/{key}" - | tail -n+2 | cut -d, -f1-5 > /mnt/data/{key}')
+    shell.run(f'aws s3 cp "{prefix}/{key}" - | cut -d, -f1-5 > /mnt/data/{key}', echo=True)
 
 pool.thread.size = os.cpu_count()
 
@@ -459,12 +476,14 @@ list(pool.thread.map(download, keys))
 
 >> time aws-ec2-ssh $id -yc 'python /mnt/download_and_select.py'
 
-?
+real    1m43.209s
+user    0m0.371s
+sys     0m0.214s
 ```
 
 step 2 will group by passengers and count. this pipeline will run once per input file, and will run in parallel on all cpus.
 
-we will use shell redirection instead of cat for the input since it is more efficient.
+we will use shell redirection instead of cat for the input since it's more efficient.
 
 `group_and_count.py`
 
@@ -478,7 +497,7 @@ shell.run('mkdir -p /mnt/results')
 paths = shell.files('/mnt/data', abspath=True)
 
 def process(path):
-    shell.run(f'< {path} pypy3 /mnt/passenger_counts_inlined.py > /mnt/results/{os.path.basename(path)}')
+    shell.run(f'< {path} pypy3 /mnt/passenger_counts_inlined.py > /mnt/results/{os.path.basename(path)}', echo=True)
 
 pool.thread.size = os.cpu_count()
 
@@ -490,10 +509,12 @@ list(pool.thread.map(process, paths))
 
 >> time aws-ec2-ssh $id -yc 'python /mnt/group_and_count.py'
 
-?
+real    0m11.062s
+user    0m0.262s
+sys     0m0.018s
 ```
 
-step 3 will merge the results from step 2. we haven't actually written this code yet, so let's do that now. this pipeline runs on a single core.
+step 3 will merge the results from step 2. we haven't actually written this code yet, so let's do that now. this pipeline runs on a single core and takes all results as input.
 
 `passenger_counts_merge.py`
 
@@ -504,7 +525,7 @@ import collections
 result = collections.defaultdict(int)
 
 for line in sys.stdin:
-    passengers, count = line.split()
+    passengers, count = line.split(',')
     result[passengers] += int(count)
 
 for passengers, count in result.items():
@@ -519,13 +540,65 @@ for passengers, count in result.items():
          | python /mnt/passenger_counts_merge.py \
          | tr , " " \
          | sort -nrk 2 \
+         | head -n9 \
          | column -t
-   '
+   ' 2>/dev/null
 
-?
+1  1135220009
+2  239682470
+5  103036452
+3  70433928
+6  38585630
+4  34074570
+0  6881250
+7  2040
+8  1609
+
+real    0m1.580s
+user    0m0.189s
+sys     0m0.038s
 ```
 
-since we are paying $1.33/hour for this instance, let's shut it down as soon as we don't need it. it's a spot instance, and the default if to terminate on shutdown, so we can simply power it off.
+a final optimization we can apply here is to combine steps 1 and 2, which will avoid iowait as a bottleneck since we never touch local disk.
+
+`combined.py`
+
+```python
+import os
+import shell
+import pool.thread
+
+shell.run('mkdir -p /mnt/results')
+
+prefix = "s3://nyc-tlc/trip data"
+
+keys = [x.split()[-1] for x in shell.run(f'aws s3 ls "{prefix}/"').splitlines() if 'yellow' in x]
+
+def process(key):
+    shell.run(f'aws s3 cp "{prefix}/{key}" - '
+              '| cut -d, -f1-5'
+              '| pypy3 /mnt/passenger_counts_inlined.py'
+              '> /mnt/results/{key}',
+              echo=True)
+
+pool.thread.size = os.cpu_count()
+
+list(pool.thread.map(process, keys))
+```
+
+```bash
+>> aws-ec2-scp combined.py :/mnt $id -y
+
+>> time aws-ec2-ssh $id -yc 'python /mnt/combined.py'
+
+real    0m53.036s
+user    0m0.334s
+sys     0m0.069s
+```
+
+interesting. reading from the network is faster than writing to disk, and in this case get's us a x2 wall clock improvement.
+
+since we are paying $3/hour for this instance, let's shut it down. it's a spot instance, and the default behavior is to terminate on shutdown, so we can simply power it off.
 
 ```bash
 >> aws-ec2-ssh $id -yc 'sudo poweroff'
@@ -534,5 +607,9 @@ since we are paying $1.33/hour for this instance, let's shut it down as soon as 
 lets see how much money we spent getting this result.
 
 ```bash
-echo job took $(( ($(date +%s) - $start) / 60 )) minutes
+>> echo job took $(( ($(date +%s) - $start) / 60 )) minutes
+
+job took 6 minutes
 ```
+
+for less than $1, we analyzed a 250GB dataset with python. an individual query took as little as 10 seconds reading from local disk, or 60 seconds reading from s3. vertical scaling with python is a good technique, but now that we've maxed out our instance size, the only way to continue scaling is to go [horizontal](https://nathants.com/posts).
