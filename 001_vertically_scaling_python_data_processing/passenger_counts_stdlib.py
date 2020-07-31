@@ -1,3 +1,4 @@
+import csv
 import sys
 import collections
 
@@ -5,8 +6,7 @@ sys.stdin.readline() # skip the header
 
 result = collections.defaultdict(int)
 
-for line in sys.stdin:
-    cols = line.split(',')
+for cols in csv.reader(sys.stdin):
     try:
         passengers = cols[3]
     except IndexError:

@@ -1,6 +1,8 @@
 import sys
 import collections
 
+sys.stdin.readline() # skip the header
+
 result = collections.defaultdict(int)
 
 ### START BOILERPLATE ###
@@ -28,8 +30,9 @@ while True:
             read_offset = i
 
             ### START CUSTOM CODE ###
-            passengers = read_buffer[starts[3]:ends[3]]
-            result[passengers] += 1
+            if max >= 3:
+                passengers = read_buffer[starts[3]:ends[3]]
+                result[passengers] += 1
             ### END CUSTOM CODE ###
 
             max = 0 # reset for next row
