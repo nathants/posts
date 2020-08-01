@@ -579,9 +579,9 @@ keys = [x.split()[-1] for x in shell.run(f'aws s3 ls "{prefix}/"').splitlines() 
 
 def process(key):
     shell.run(f'aws s3 cp "{prefix}/{key}" - '
-              '| cut -d, -f1-5'
-              '| pypy3 /mnt/passenger_counts_inlined.py'
-              '> /mnt/results/{key}',
+              f'| cut -d, -f1-5'
+              f'| pypy3 /mnt/passenger_counts_inlined.py'
+              f'> /mnt/results/{key}',
               echo=True)
 
 pool.thread.size = os.cpu_count()
