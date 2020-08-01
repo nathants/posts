@@ -58,8 +58,7 @@ looks like about 250GB. what about the others?
 >> aws s3 ls 's3://nyc-tlc/trip data/' \
     | awk '{print $NF}' \
     | cut -d_ -f1 \
-    | sort \
-    | uniq \
+    | sort -u \
     | tail -n+2 \
     | while read prefix; do
           echo $prefix $(aws s3 ls "s3://nyc-tlc/trip data/${prefix}_" \
@@ -388,7 +387,7 @@ us-east-1f 3.254400
 
 looks like cost will be $3/hour.
 
-our box is going to need s3 access to get the dataset, so let's make a role.
+our machine is going to need s3 access to get the dataset, so let's make a role.
 
 ```bash
 >> aws-iam-ensure-instance-profile --policy AmazonS3ReadOnlyAccess s3-readonly
@@ -399,7 +398,7 @@ we are also going to need a vpc, keypair, and security group access for port 22.
 ```bash
 >> aws-vpc-new adhoc-vpc
 
->> aws-ec2-authorize-ip $(curl checkip.amazonaws.com) adhoc-vpc -y
+>> aws-ec2-authorize-ip $(curl checkip.amazonaws.com) adhoc-vpc --yes
 
 >> aws-ec2-keypair-new $(whoami) ~/.ssh/id_rsa.pub
 ```
@@ -410,10 +409,10 @@ before we start, let's note the time.
 >> start=$(date +%s)
 ```
 
-now it's time to spinup our box.
+now it's time to spinup our machine.
 
 ```bash
->> time id=$(aws-ec2-new --type i3en.24xlarge --ami arch --profile s3-readonly test-box)
+>> time id=$(aws-ec2-new --type i3en.24xlarge --ami arch --profile s3-readonly test-machine)
 
 real    1m10.673s
 user    0m2.510s
@@ -423,7 +422,7 @@ sys     0m0.434s
 it takes a moment to format the instance store ssd, so we wait.
 
 ```bash
->> aws-ec2-ssh $id -yc '
+>> aws-ec2-ssh $id --yes --cmd '
        while true; do
            sleep 1
            df -h | grep /mnt && break
@@ -434,21 +433,21 @@ it takes a moment to format the instance store ssd, so we wait.
 we aren't starting from a prebuilt ami, so we need to install some things.
 
 ```bash
->> aws-ec2-ssh $id -yc '
+>> aws-ec2-ssh $id --yes --cmd '
        sudo pacman -Sy --noconfirm python-pip pypy3 git
        sudo pip install awscli git+https://github.com/nathants/py-{util,shell,pool}
    '
 ```
 
-then we bump linux limits, reboot, and wait for the box to come back up.
+then we bump linux limits, reboot, and wait for the machine to come back up.
 
 ```bash
->> aws-ec2-ssh $id -yc '
+>> aws-ec2-ssh $id --yes --cmd '
        curl -s https://raw.githubusercontent.com/nathants/bootstraps/master/scripts/limits.sh | bash
        sudo reboot
    '
 
->> aws-ec2-wait-for-ssh $id -y
+>> aws-ec2-wait-for-ssh $id --yes
 ```
 
 baking an [ami](https://github.com/nathants/bootstraps/tree/master/amis) instead of starting from vanilla linux can save some bootstrap time.
@@ -456,7 +455,7 @@ baking an [ami](https://github.com/nathants/bootstraps/tree/master/amis) instead
 now let's deploy our code.
 
 ```bash
->> aws-ec2-scp passenger_counts_inlined.py :/mnt $id -y
+>> aws-ec2-scp passenger_counts_inlined.py :/mnt $id --yes
 ```
 
 our data pipeling is going to look like:
@@ -488,9 +487,9 @@ list(pool.thread.map(download, keys))
 ```
 
 ```bash
->> aws-ec2-scp download_and_select.py :/mnt $id -y
+>> aws-ec2-scp download_and_select.py :/mnt $id --yes
 
->> time aws-ec2-ssh $id -yc 'python /mnt/download_and_select.py'
+>> time aws-ec2-ssh $id --yes --cmd 'python /mnt/download_and_select.py'
 
 real    1m43.209s
 user    0m0.371s
@@ -520,9 +519,9 @@ list(pool.thread.map(process, paths))
 ```
 
 ```bash
->> aws-ec2-scp group_and_count.py :/mnt $id -y
+>> aws-ec2-scp group_and_count.py :/mnt $id --yes
 
->> time aws-ec2-ssh $id -yc 'python /mnt/group_and_count.py'
+>> time aws-ec2-ssh $id --yes --cmd 'python /mnt/group_and_count.py'
 
 real    0m11.062s
 user    0m0.262s
@@ -532,7 +531,7 @@ sys     0m0.018s
 step 3 will merge the results from step 2. we haven't actually written this code yet, so let's do that now. this pipeline runs on a single core and takes all results as input.
 
 ```python
-# passenger_counts_merge.py
+# merge_results.py
 import sys
 import collections
 
@@ -547,11 +546,11 @@ for passengers, count in result.items():
 ```
 
 ```bash
->> aws-ec2-scp passenger_counts_merge.py :/mnt $id -y
+>> aws-ec2-scp merge_results.py :/mnt $id --yes
 
->> time aws-ec2-ssh $id -yc '
+>> time aws-ec2-ssh $id --yes --cmd '
        cat /mnt/results/* \
-         | python /mnt/passenger_counts_merge.py \
+         | python /mnt/merge_results.py \
          | tr , " " \
          | sort -nrk 2 \
          | head -n9 \
@@ -590,9 +589,9 @@ list(pool.thread.map(process, keys))
 ```
 
 ```bash
->> aws-ec2-scp combined.py :/mnt $id -y
+>> aws-ec2-scp combined.py :/mnt $id --yes
 
->> time aws-ec2-ssh $id -yc 'python /mnt/combined.py'
+>> time aws-ec2-ssh $id --yes --cmd 'python /mnt/combined.py'
 
 real    0m53.036s
 user    0m0.334s
@@ -604,7 +603,7 @@ interesting. reading from the network is faster than writing to disk, and in thi
 since we are paying $3/hour for this instance, let's shut it down. it's a spot instance, and the default behavior is to terminate on shutdown, so we can simply power it off.
 
 ```bash
->> aws-ec2-ssh $id -yc 'sudo poweroff'
+>> aws-ec2-ssh $id --yes --cmd 'sudo poweroff'
 ```
 
 lets see how much money we spent getting this result.
