@@ -2,9 +2,9 @@
 
 full source code is available [here](https://github.com/nathants/posts/tree/002/002_horizontally_scaling_python_data_processing).
 
-previously we scaled an analysis of the nyc taxi dataset [vertically](https://nathants.com/posts/scaling-python-data-processing-vertically) on a single machine, now let's try horizontally on multiple machines. instead of a single i3en.24xlarge we'll use twelve i3en.2xlarge.
+we scaled an analysis of the nyc taxi dataset [vertically](/posts/scaling-python-data-processing-vertically) on a single machine, now let's scale horizontally on multiple machines. instead of a single i3en.24xlarge we'll use twelve i3en.2xlarge.
 
-we'll be using the same code and aws setup from before. for context refer to the [vertical scaling](https://nathants.com/posts/scaling-python-data-processing-vertically) post.
+we'll be using the same code and aws setup from before, so refer to [that](/posts/scaling-python-data-processing-vertically) for context.
 
 first we're going to need some ec2 instances.
 
@@ -21,7 +21,7 @@ us-east-1f 0.272200
 us-east-1a 0.288600
 ```
 
-at about $0.25/hour/instance, with 12 instances, cost will be $3/hour.
+at about $0.25/hour/instance will be $3/hour.
 
 before we start, let's note the time.
 
@@ -29,10 +29,14 @@ before we start, let's note the time.
 >> start=$(date +%s)
 ```
 
-now it's time to spinup our machines. the following may look familiar, it is almost identical to how we instantiated our machine for [vertical scaling](https://nathants.com/posts/scaling-python-data-processing-vertically), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
+now it's time to spinup our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
 
 ```bash
->> time ids=$(aws-ec2-new --type i3en.2xlarge --num 12 --ami arch --profile s3-readonly temp-machines)
+>> time ids=$(aws-ec2-new --type i3en.2xlarge \
+                          --num 12 \
+                          --ami arch \
+                          --profile s3-readonly \
+                          temp-machines)
 
 real    1m57.050s
 user    0m3.154s
@@ -189,7 +193,7 @@ user    0m2.980s
 sys     0m0.933s
 ```
 
-step 3 will merge the results from step 2. this pipeline runs locally on a single core and takes all results as input.
+step 3 will merge the results. this pipeline runs locally on a single core and takes all results as input.
 
 ```python
 # merge_results.py
@@ -299,9 +303,13 @@ lets see how much money we spent getting this result.
 ```bash
 >> echo job took $(( ($(date +%s) - $start) / 60 )) minutes
 
-job took 6 minutes
+job took 8 minutes
 ```
 
-for less than $1, we analyzed a 250GB dataset with python on a cluster of twelve machines. an individual query took as little as 18 seconds reading from local disk, or 80 seconds reading from s3. interestingly, this is up from 10 seconds and 60 seconds respectively from our [vertical scaling](https://nathants.com/posts/scaling-python-data-processing-vertically) session, suggesting that both network and disk io performance varies with instance size.
+for less than $1, we analyzed a 250GB dataset with python on a cluster of twelve machines. an individual query took as little as 18 seconds reading from local disk, or 80 seconds reading from s3.
+
+interestingly, this is up from 10 seconds and 60 seconds respectively in the [vertical scaling](/posts/scaling-python-data-processing-vertically) post, suggesting that both network and disk io performance varies with instance size.
+
+we iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on large single machines or multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
