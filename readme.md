@@ -1,8 +1,6 @@
 ## what
 
-this repo contains the posts from [nathants.com](https://nathants.com/posts).
-
-each post is a pull request.
+this repo contains the posts from [nathants.com](https://nathants.com/posts) as pull requests.
 
 ## posts
 
