@@ -1,10 +1,10 @@
-## horizontally scaling python data processing
+## scaling python data processing horizontally
 
 full source code is available [here](https://github.com/nathants/posts/tree/002/002_horizontally_scaling_python_data_processing).
 
-previously we scaled an analysis of the nyc taxi dataset [vertically](https://nathants.com/posts/vertically-scaling-python-data-processing) on a single machine, now let's try horizontally on multiple machines. instead of a single i3en.24xlarge we'll use twelve i3en.2xlarge.
+previously we scaled an analysis of the nyc taxi dataset [vertically](https://nathants.com/posts/scaling-python-data-processing-vertically) on a single machine, now let's try horizontally on multiple machines. instead of a single i3en.24xlarge we'll use twelve i3en.2xlarge.
 
-we'll be using the same code and aws setup from before. for context refer to the [vertical scaling](https://nathants.com/posts/vertically-scaling-python-data-processing) post.
+we'll be using the same code and aws setup from before. for context refer to the [vertical scaling](https://nathants.com/posts/scaling-python-data-processing-vertically) post.
 
 first we're going to need some ec2 instances.
 
@@ -29,7 +29,7 @@ before we start, let's note the time.
 >> start=$(date +%s)
 ```
 
-now it's time to spinup our machines. the following may look familiar, it is almost identical to how we instantiated our machine for [vertical scaling](https://nathants.com/posts/vertically-scaling-python-data-processing), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
+now it's time to spinup our machines. the following may look familiar, it is almost identical to how we instantiated our machine for [vertical scaling](https://nathants.com/posts/scaling-python-data-processing-vertically), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
 
 ```bash
 >> time ids=$(aws-ec2-new --type i3en.2xlarge --num 12 --ami arch --profile s3-readonly temp-machines)
@@ -302,6 +302,6 @@ lets see how much money we spent getting this result.
 job took 6 minutes
 ```
 
-for less than $1, we analyzed a 250GB dataset with python on a cluster of twelve machines. an individual query took as little as 18 seconds reading from local disk, or 80 seconds reading from s3. interestingly, this is up from 10 seconds and 60 seconds respectively from our [vertical scaling](https://nathants.com/posts/vertically-scaling-python-data-processing) session, suggesting that both network and disk io performance varies with instance size.
+for less than $1, we analyzed a 250GB dataset with python on a cluster of twelve machines. an individual query took as little as 18 seconds reading from local disk, or 80 seconds reading from s3. interestingly, this is up from 10 seconds and 60 seconds respectively from our [vertical scaling](https://nathants.com/posts/scaling-python-data-processing-vertically) session, suggesting that both network and disk io performance varies with instance size.
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
