@@ -1,6 +1,6 @@
-## vertically scaling python data processing
+## scaling python data processing vertically
 
-full source code is available [here](https://github.com/nathants/posts/tree/001/001_vertically_scaling_python_data_processing).
+full source code is available [here](https://github.com/nathants/posts/tree/001/001_scaling_python_data_processing_vertically).
 
 processing inconveniently large data is a common task these days, and there are many tools and techniques available to help. here we are going to explore how far we can take python on a single machine.
 
@@ -276,7 +276,7 @@ user    0m16.386s
 sys     0m4.011s
 ```
 
-well that's not ideal. let's see if we can apply performance lessons from compiled languages, which can be summarized as avoid allocations and do as little work as possible. the following file has some [boiler plate](https://github.com/nathants/py-csv) elided, refer to the full [source](https://github.com/nathants/posts/tree/001/001_vertically_scaling_python_data_processing) for the details.
+well that's not ideal. let's see if we can apply performance lessons from compiled languages, which can be summarized as avoid allocations and do as little work as possible. the following file has some [boiler plate](https://github.com/nathants/py-csv) elided, refer to the full [source](https://github.com/nathants/posts/tree/001/001_scaling_python_data_processing_vertically) for the details.
 
 ```python
 # passenger_counts_inlined.py
