@@ -15,5 +15,5 @@ with shell.tempdir():
                 passengers, count = line.split(',')
                 result[passengers] += int(count)
 
-    for passengers, count in result.items():
-        print(f'{passengers},{count}')
+for passengers, count in result.items():
+    print(f'{passengers},{count}')

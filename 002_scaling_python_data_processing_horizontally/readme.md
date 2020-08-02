@@ -21,7 +21,7 @@ us-east-1f 0.272200
 us-east-1a 0.288600
 ```
 
-at about $0.25/hour/instance will be $3/hour.
+at about $0.25/hour/instance cost will be $3/hour.
 
 before we start, let's note the time.
 
@@ -29,7 +29,7 @@ before we start, let's note the time.
 >> start=$(date +%s)
 ```
 
-now it's time to spin up our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
+now it's time to spin up our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple instance `$ids` instead of just one `$id`.
 
 ```bash
 >> time ids=$(aws-ec2-new --type i3en.2xlarge \
@@ -106,7 +106,7 @@ pool.thread.size = os.cpu_count()
 list(pool.thread.map(download, keys))
 ```
 
-since we are running on multiple machines now, we'll need to orchestrate the activity. we'll be using a local process and ssh. the local process will divide the keys to process across the machines and monitor their execution.
+since we are running on multiple machines, we'll need to orchestrate the activity. we'll be using a local process and ssh. the local process will divide the keys to process across the machines and monitor their execution.
 
 ```python
 # orchestrate_download_and_select.py
@@ -193,7 +193,7 @@ user    0m2.980s
 sys     0m0.933s
 ```
 
-step 3 will merge the results. this pipeline runs locally on a single core and takes all results as input.
+step 3 will merge the results. this pipeline runs locally on a single core.
 
 ```python
 # merge_results.py
@@ -214,8 +214,8 @@ with shell.tempdir():
                 passengers, count = line.split(',')
                 result[passengers] += int(count)
 
-    for passengers, count in result.items():
-        print(f'{passengers},{count}')
+for passengers, count in result.items():
+    print(f'{passengers},{count}')
 ```
 
 ```bash
@@ -308,8 +308,8 @@ job took 8 minutes
 
 for less than $1, we analyzed a 250GB dataset with python on a cluster of twelve machines. an individual query took as little as 18 seconds reading from local disk, or 80 seconds reading from s3.
 
-interestingly, this is up from 10 seconds and 60 seconds respectively in the [vertical scaling](/posts/scaling-python-data-processing-vertically) post, suggesting that both network and disk io performance varies with instance size.
+interestingly, this is up from 10 seconds and 60 seconds respectively in the [vertical scaling](/posts/scaling-python-data-processing-vertically) post, suggesting that both network and disk performance varies with instance size.
 
-we iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on large single machines or multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
+we iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on large single machines and on multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
