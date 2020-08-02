@@ -29,7 +29,7 @@ before we start, let's note the time.
 >> start=$(date +%s)
 ```
 
-now it's time to spinup our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
+now it's time to spin up our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple ec2 instance `$ids` instead of just one `$id`.
 
 ```bash
 >> time ids=$(aws-ec2-new --type i3en.2xlarge \
@@ -76,7 +76,7 @@ then we bump linux limits, reboot, and wait for the machines to come back up.
 
 baking an [ami](https://github.com/nathants/bootstraps/tree/master/amis) instead of starting from vanilla linux can save some bootstrap time.
 
-our data pipeling is going to look like:
+our data pipeline is going to look like:
 
 - fetch the dataset
 - select the columns we need
