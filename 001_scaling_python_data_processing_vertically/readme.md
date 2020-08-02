@@ -619,6 +619,6 @@ lets see how much money we spent getting this result.
 job took 6 minutes
 ```
 
-for less than $1, we analyzed a 250GB dataset with python. an individual query took as little as 10 seconds reading from local disk, or 60 seconds reading from s3. vertical scaling with python is a good technique, but now that we've maxed out our instance size, the only way to continue scaling is to go [horizontal](https://nathants.com/posts).
+for less than $1, we analyzed a 250GB dataset with python. an individual query took as little as 10 seconds reading from local disk, or 60 seconds reading from s3. vertical scaling with python is a good technique, but now that we've maxed out our instance size, the only way to continue scaling is to go [horizontal](/posts/scaling-python-data-processing-horizontally).
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
