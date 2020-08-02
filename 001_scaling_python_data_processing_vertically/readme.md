@@ -41,7 +41,7 @@ looks like a bunch of csv in a folder. are the prefixes constant?
     138 yellow
 ```
 
-nope. ok, so we probably want the yellow data. lets check on the sizes first.
+nope. we probably want the yellow data. lets check on the sizes first.
 
 ```bash
 >> aws s3 ls 's3://nyc-tlc/trip data/' \
@@ -409,7 +409,7 @@ before we start, let's note the time.
 >> start=$(date +%s)
 ```
 
-now it's time to spinup our machine.
+now it's time to spin up our machine.
 
 ```bash
 >> time id=$(aws-ec2-new --type i3en.24xlarge --ami arch --profile s3-readonly test-machine)
@@ -458,7 +458,7 @@ now let's deploy our code.
 >> aws-ec2-scp passenger_counts_inlined.py :/mnt $id --yes
 ```
 
-our data pipeling is going to look like:
+our data pipeline is going to look like:
 - fetch the dataset
 - select the columns we need
 - group by and count
