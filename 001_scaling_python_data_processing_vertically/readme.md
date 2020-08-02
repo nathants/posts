@@ -412,7 +412,12 @@ before we start, let's note the time.
 now it's time to spin up our machine.
 
 ```bash
->> time id=$(aws-ec2-new --type i3en.24xlarge --ami arch --profile s3-readonly test-machine)
+>> time id=$(
+       aws-ec2-new --type i3en.24xlarge \
+                   --ami arch \
+                   --profile s3-readonly \
+                   test-machine
+   )
 
 real    1m10.673s
 user    0m2.510s
