@@ -32,11 +32,13 @@ before we start, let's note the time.
 now it's time to spin up our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple instance `$ids` instead of just one `$id`.
 
 ```bash
->> time ids=$(aws-ec2-new --type i3en.2xlarge \
-                          --num 12 \
-                          --ami arch \
-                          --profile s3-readonly \
-                          test-machines)
+>> time ids=$(
+       aws-ec2-new --type i3en.2xlarge \
+                   --num 12 \
+                   --ami arch \
+                   --profile s3-readonly \
+                   test-machines
+   )
 
 real    1m57.050s
 user    0m3.154s
