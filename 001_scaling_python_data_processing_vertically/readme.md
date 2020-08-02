@@ -326,7 +326,7 @@ user    0m3.196s
 sys     0m1.155s
 ```
 
-another x2 improvement, we'll take it. if interested in going deeper, see futher optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
+another x2 improvement, we'll take it. if interested, see futher optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
 
 our first x2 improvement we got by avoiding allocations, and here we get another one by dropping unused data upstream.
 
