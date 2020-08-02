@@ -295,7 +295,7 @@ sys     0m1.949s
 since we are paying $3/hour for this instance, let's shut it down. it's a spot instance, and the default behavior is to terminate on shutdown, so we can simply power it off.
 
 ```bash
->> aws-ec2-ssh $ids -yc 'sudo poweroff'
+>> aws-ec2-ssh $ids --yes --cmd 'sudo poweroff'
 ```
 
 lets see how much money we spent getting this result.
@@ -365,7 +365,7 @@ real    0m2.527s
 user    0m0.336s
 sys     0m0.057s
 
->> aws-ec2-ssh $ids -yc 'sudo poweroff'
+>> aws-ec2-ssh $ids --yes --cmd 'sudo poweroff'
 
 >> echo job took $(( ($(date +%s) - $start) / 60 )) minutes
 
