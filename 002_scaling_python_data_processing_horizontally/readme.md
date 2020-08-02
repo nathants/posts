@@ -36,7 +36,7 @@ now it's time to spin up our machines. the following may look familiar. it is al
                           --num 12 \
                           --ami arch \
                           --profile s3-readonly \
-                          temp-machines)
+                          test-machines)
 
 real    1m57.050s
 user    0m3.154s
@@ -295,7 +295,7 @@ sys     0m1.949s
 since we are paying $3/hour for this instance, let's shut it down. it's a spot instance, and the default behavior is to terminate on shutdown, so we can simply power it off.
 
 ```bash
->> aws-ec2-ssh $id -yc 'sudo poweroff'
+>> aws-ec2-ssh $ids -yc 'sudo poweroff'
 ```
 
 lets see how much money we spent getting this result.
@@ -313,3 +313,63 @@ interestingly, this is up from 10 seconds and 60 seconds respectively in the [ve
 we iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on large single machines and on multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
+
+just for fun, let's try vertical and horizontal scaling together with four i3en.24xlarge. we'll be using the [basic](https://github.com/nathants/bootstraps/blob/master/amis/basic.sh) ami instead of live bootstrapping.
+
+```bash
+>> aws-ec2-max-spot-price i3en.24xlarge
+
+on demand: 10.848, spot offers 70% savings
+us-east-1a 3.254400
+us-east-1b 3.254400
+us-east-1c 3.254400
+us-east-1d 3.254400
+us-east-1f 3.254400
+
+>> start=$(date +%s)
+
+>> time ids=$(aws-ec2-new --type i3en.24xlarge \
+                          --num 4 \
+                          --ami basic \
+                          --profile s3-readonly \
+                          test-machines)
+
+real    4m11.740s
+user    0m5.453s
+sys     0m1.354s
+
+>> aws-ec2-ssh $ids --yes --cmd '
+       while true; do
+           sleep 1
+           df -h | grep /mnt && break
+       done
+   '
+
+>> aws-ec2-scp passenger_counts_inlined.py :/mnt $ids --yes
+
+>> aws-ec2-scp combined.py :/mnt $ids --yes
+
+>> time python orchestrate_combined.py $ids
+
+real    0m32.145s
+user    0m1.478s
+sys     0m0.572s
+
+>> time python merge_results.py $ids \
+    | tr , " " \
+    | sort -nrk 2 \
+    | head -n9 \
+    | column -t
+
+real    0m2.527s
+user    0m0.336s
+sys     0m0.057s
+
+>> aws-ec2-ssh $ids -yc 'sudo poweroff'
+
+>> echo job took $(( ($(date +%s) - $start) / 60 )) minutes
+
+job took 6 minutes
+```
+
+30 seconds, interesting. it's only x2 faster, not the x4 we might expect, than the single machine used in [vertical scaling](/posts/scaling-python-data-processing-vertically). i wonder why?
