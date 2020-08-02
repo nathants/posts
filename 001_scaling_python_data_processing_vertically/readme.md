@@ -305,7 +305,7 @@ user    0m8.876s
 sys     0m3.108s
 ```
 
-a x2 improvement on user time, and nearly as much on wall clock. we'll take it.
+a x2 improvement on user time, and nearly as much on wall clock. we'll take it. if interested, see futher optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
 
 a final optimization we can make is to work with less data. since we know we only care about the first 5 columns, we can slice that out upstream.
 
@@ -326,7 +326,7 @@ user    0m3.196s
 sys     0m1.155s
 ```
 
-another x2 improvement, we'll take it. if interested, see futher optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
+another x2 improvement, we'll take it.
 
 our first x2 improvement we got by avoiding allocations, and here we get another one by dropping unused data upstream.
 
