@@ -298,10 +298,10 @@ user    0m4.867s
 sys     0m1.949s
 ```
 
-since we are paying $3/hour for this instance, let's shut it down. it's a spot instance, and the default behavior is to terminate on shutdown, so we can simply power it off.
+since we are paying $3/hour for this instance, let's shut it down.
 
 ```bash
->> aws-ec2-ssh $ids --yes --cmd 'sudo poweroff'
+>> aws-ec2-rm $ids --yes
 ```
 
 lets see how much money we spent getting this result.
