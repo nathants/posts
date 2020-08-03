@@ -605,10 +605,10 @@ sys     0m0.069s
 
 interesting. reading from the network is faster than writing to disk, and in this case get's us a x2 wall clock improvement.
 
-since we are paying $3/hour for this instance, let's shut it down. it's a spot instance, and the default behavior is to terminate on shutdown, so we can simply power it off.
+since we are paying $3/hour for this instance, let's shut it down.
 
 ```bash
->> aws-ec2-ssh $id --yes --cmd 'sudo poweroff'
+>> aws-ec2-rm $id --yes'
 ```
 
 lets see how much money we spent getting this result.
