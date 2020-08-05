@@ -117,7 +117,7 @@ let's put that all together and see what we've got.
 
 now we have a series of steps, mapping immutable inputs to immutable outputs. we have no details of infrastructure, data location, or data transfer. we can imagine taking any of these commands and running them locally to debug or optimize. this feels better than threadpools, rsync, and ssh. it's too bad none of this works.
 
-[s3](https://aws.amazon.com/s3/) is a pinaccle of modern engineering. it scales automatically, is comically durable, quite available, and significantly cheaper than [ebs](https://aws.amazon.com/ebs/). in it's [standard](https://aws.amazon.com/s3/storage-classes/#General_purpose) storage class it replicates across availability zones without bandwidth charges. within the same region, bandwidth between ec2 and s3 is free.
+[s3](https://aws.amazon.com/s3/) is a pinnacle of modern engineering. it scales automatically, is comically durable, quite available, and significantly cheaper than [ebs](https://aws.amazon.com/ebs/). in it's [standard](https://aws.amazon.com/s3/storage-classes/#General_purpose) storage class it replicates across availability zones without bandwidth charges. within the same region, bandwidth between ec2 and s3 is free.
 
 we want to use s3 for durability and scalability. we also want simple distributed data pipelines like we imagined above. so let's spin up a system to compliment s3. we'll call it  [s4](https://github.com/nathants/s4).
 
@@ -269,7 +269,7 @@ we've already spun up an s4 cluster in us-east-1, but let's delete it and make a
 3m43.205s
 ```
 
-first we deploy our code to every machine. note that we'll be refering to ec2 instances by name instead of id.
+first we deploy our code to every machine. note that we'll be referring to ec2 instances by name instead of id.
 
 ```bash
 >> aws-ec2-scp passenger_counts_inlined.py :/mnt $name --yes
@@ -419,7 +419,7 @@ we can optimize by merging some of these steps.
 
 performance improves, but we can no longer measure steps independently. sometimes we should combine steps, others we should pull them apart.
 
-while we've got the cluster up, let's do one more thing. we haven't really flexed 1:n and n:1 maps properly yet, so let's do that. the taxi dataset is organized into files by date. let's reorgnize it by passenger count. this will make it easier to answer questions about the trips for a given passenger count by scanning a single file.
+while we've got the cluster up, let's do one more thing. we haven't really flexed 1:n and n:1 maps properly yet, so let's do that. the taxi dataset is organized into files by date. let's reorganize it by passenger count. this will make it easier to answer questions about the trips for a given passenger count by scanning a single file.
 
 we're going to need a new data script for our 1:n map. it will partition data by passenger count into separate files. files with the same name will be sent to the same machine, shuffling data around the cluster. then we'll merge those into a single file. we're going to partition each passenger count into multiple files to more evenly spread the data around the cluster. we'll make 12 files per passenger count, the same as cluster size.
 
@@ -489,7 +489,7 @@ s4 eval s4://step4/passengers_5_000.csv "cut -d, -f2 | grep -Eo '^.{4}' | sort |
       1 2008
 ```
 
-normally at this point we'd push the results back to s3 to make them durable, but our cluster has readonly access, so we won't be doing that.
+normally at this point we'd push the results back to s3 to make them durable, but our cluster has read only access, so we won't be doing that.
 
 while we've got a cluster up, let's take a look at performance. what's the biggest and smallest file in the dataset?
 
