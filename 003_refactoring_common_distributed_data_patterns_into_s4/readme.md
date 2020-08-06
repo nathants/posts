@@ -419,7 +419,7 @@ we can optimize by merging some of these steps.
 
 performance improves, but we can no longer measure steps independently. sometimes we should combine steps, others we should pull them apart.
 
-while we've got the cluster up, let's do one more thing. we haven't really flexed 1:n and n:1 maps properly yet, so let's do that. the taxi dataset is organized into files by date. let's reorganize it by passenger count. this will make it easier to answer questions about the trips for a given passenger count by scanning a single file.
+while we've got the cluster up, let's do one more thing. we haven't really flexed 1:n and n:1 maps properly yet, so let's do that. the taxi dataset is organized into files by date. let's reorganize it by passenger count. this will make it easier to answer questions about the trips for a given passenger count by without scanning the entire dataset.
 
 we're going to need a new data script for our 1:n map. it will partition data by passenger count into separate files. files with the same name will be sent to the same machine, shuffling data around the cluster. then we'll merge those into a single file. we're going to partition each passenger count into multiple files to more evenly spread the data around the cluster. we'll make 12 files per passenger count, the same as cluster size.
 
