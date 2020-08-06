@@ -148,7 +148,7 @@ let's give it a try. first we install [s4](https://github.com/nathants/s4#instal
 5m17.052s
 ```
 
-next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster because the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
+next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
 
 ```bash
 >> export region=us-east-1
