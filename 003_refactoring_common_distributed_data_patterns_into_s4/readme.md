@@ -599,4 +599,4 @@ these two systems are perfect compliments. we want durability, but we don't need
 
 using s4 we can focus more on our data pipelines, and less on low level details of distributed compute. our data pipelines can start, end, and checkpoint to durable data in s3. everywhere in between they can use s4 to map arbitrary commands over ephemeral immutable data in 1:1, 1:n and n:1 operations.
 
-you can find more examples of s4 [here](https://github.com/nathants/s4/tree/master/examples), where further analysis of the nyc taxi dataset is done with python, [bsv](https://github.com/nathants/bsv). [presto](https://prestodb.io/) is used to verify results and provide a performance baseline.
+you can find more examples of s4 [here](https://github.com/nathants/s4/tree/master/examples), where further analysis of the nyc taxi dataset is done with python and [bsv](https://github.com/nathants/bsv). to verify results and provide a performance baseline analysis is repeated with [presto](https://prestodb.io/).
