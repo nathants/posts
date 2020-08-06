@@ -309,7 +309,7 @@ sys     0m3.108s
 
 a x2 improvement on user time, and nearly as much on wall clock. we'll take it. if interested, see further optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
 
-a final optimization we can make is to work with less data. since we know we only care about the first 5 columns, we can slice that out upstream.
+a final optimization we can make is to work with less data. since we know we only care about the first 5 columns, we can drop unused data upstream.
 
 ```bash
 >> time cat /tmp/taxi.csv | cut -d, -f1-5 > /tmp/taxi.csv.slim
@@ -330,7 +330,7 @@ sys     0m1.155s
 
 another x2 improvement, we'll take it.
 
-our first x2 improvement we got by avoiding allocations, and here we get another one by dropping unused data upstream.
+our first significant improvement we got by avoiding allocations, and here we get another one by dropping unused data upstream.
 
 let's take another look at our improvements.
 
@@ -350,7 +350,7 @@ user    0m3.401s
 sys     0m0.907s
 ```
 
-by doing less work, manually inlining code, avoiding allocations, and reducing the data set upstream, we can get sizeable performance improvements.
+by doing less work, manually inlining code, avoiding allocations, and reducing the data set, we can get sizeable performance improvements.
 
 just for fun, let's take a look at going even faster. we'll explore this in a later [post](https://nathants.com/posts)
 
@@ -370,7 +370,7 @@ user    0m0.801s
 sys     0m0.950s
 ```
 
-having system time be the bottleneck is a really good problem to have.
+system time as the bottleneck is a really good problem to have.
 
 back to python, it's time to deploy and scale vertically. first we're going to need an ec2 instance. let's use a [i3en.24xlarge](https://aws.amazon.com/ec2/instance-types/i3en/) with [archlinux](https://wiki.archlinux.org/).
 
@@ -389,13 +389,15 @@ us-east-1f 3.254400
 
 looks like cost will be $3/hour.
 
-our machine is going to need s3 access to get the dataset, so let's make a role.
+our machine is going to need s3 access to get the dataset, so let's make an instance profile.
 
 ```bash
->> aws-iam-ensure-instance-profile --policy AmazonS3ReadOnlyAccess s3-readonly
+>> aws-iam-ensure-instance-profile \
+    --policy AmazonS3ReadOnlyAccess \
+    s3-readonly
 ```
 
-we are also going to need a vpc, keypair, and security group access for port 22. if you already have aws setup you probably are fine, otherwise do something like this.
+we are also going to need a vpc, keypair, and security group access for port 22. if you already have aws setup you're probably fine, otherwise do something like this.
 
 ```bash
 >> aws-vpc-new adhoc-vpc
@@ -414,12 +416,10 @@ before we start, let's note the time.
 now it's time to spin up our machine.
 
 ```bash
->> time id=$(
-       aws-ec2-new --type i3en.24xlarge \
-                   --ami arch \
-                   --profile s3-readonly \
-                   test-machine
-   )
+>> time id=$(aws-ec2-new --type i3en.24xlarge \
+                         --ami arch \
+                         --profile s3-readonly \
+                         test-machine)
 
 real    1m10.673s
 user    0m2.510s
@@ -437,7 +437,7 @@ it takes a moment to format the instance store ssd, so we wait.
    '
 ```
 
-we aren't starting from a prebuilt ami, so we need to install some things.
+now we need to install some things.
 
 ```bash
 >> aws-ec2-ssh $id --yes --cmd '
@@ -459,7 +459,7 @@ then we bump linux limits, reboot, and wait for the machine to come back up.
 
 baking an [ami](https://github.com/nathants/bootstraps/tree/master/amis) instead of starting from vanilla linux can save some bootstrap time.
 
-now let's deploy our code.
+let's deploy our code.
 
 ```bash
 >> aws-ec2-scp passenger_counts_inlined.py :/mnt $id --yes
@@ -610,7 +610,7 @@ interesting. reading from the network is faster than writing to disk, and in thi
 since we are paying $3/hour for this instance, let's shut it down.
 
 ```bash
->> aws-ec2-rm $id --yes'
+>> aws-ec2-rm $id --yes
 ```
 
 let's see how much money we spent getting this result.
@@ -621,6 +621,6 @@ let's see how much money we spent getting this result.
 job took 6 minutes
 ```
 
-for less than $1, we analyzed a 250GB dataset with python. an individual query took as little as 10 seconds reading from local disk, or 60 seconds reading from s3. vertical scaling with python is a good technique, but now that we've maxed out our instance size, the only way to continue scaling is to go [horizontal](/posts/scaling-python-data-processing-horizontally).
+for less than $1, we analyzed a 250GB dataset with python. an individual query took as little as 10 seconds reading from local disk, or 60 seconds reading from s3. vertical scaling with python is a decent technique. now that we've maxed out our instance size, the only way to scale further is to go [horizontal](/posts/scaling-python-data-processing-horizontally).
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
