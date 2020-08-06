@@ -4,9 +4,9 @@ full source code is available [here](https://github.com/nathants/posts/tree/001/
 
 processing inconveniently large data is a common task these days, and there are many tools and techniques available to help. here we are going to explore how far we can take python on a single machine.
 
-we will be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are following along.
+we'll be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are following along.
 
-we will be using some [bash functions](https://gist.github.com/nathants/741b066af9faa15f3ed50ed6cf677d67), [aws tooling](https://github.com/nathants/cli-aws), and the [official aws cli](https://aws.amazon.com/cli/). one could also use other tools without much trouble.
+we'll be using some [bash functions](https://gist.github.com/nathants/741b066af9faa15f3ed50ed6cf677d67), [aws tooling](https://github.com/nathants/cli-aws), and the [official aws cli](https://aws.amazon.com/cli/). one could also use other tools without much trouble.
 
 how is the dataset organized?
 
@@ -41,7 +41,7 @@ looks like a bunch of csv in a folder. are the prefixes constant?
     138 yellow
 ```
 
-nope. we probably want the yellow data. lets check on the sizes first.
+nope. we probably want the yellow data. let's check on the sizes first.
 
 ```bash
 >> aws s3 ls 's3://nyc-tlc/trip data/' \
@@ -107,7 +107,7 @@ vendor_id    pickup_datetime       dropoff_datetime       passenger_count   trip
 
 looks like the first 5 columns are consistent, and then it gets messy. we can punt on data cleanup by just working with those first 5, which contain interesting data like distance, passengers, and date.
 
-before we jump on ec2, lets grab the first million rows of the first file to our local environment and prototype our data scripts.
+before we jump on ec2, let's grab the first million rows of the first file to our local environment and prototype our data scripts.
 
 ```bash
 >> aws s3 cp "$prefix/$(echo $keys | awk '{print $1}')" - 2>/dev/null \
@@ -118,7 +118,9 @@ before we jump on ec2, lets grab the first million rows of the first file to our
 
 172M
 
->> head /tmp/taxi.csv | cut -d, -f1-5 | column -s, -t
+>> head /tmp/taxi.csv \
+    | cut -d, -f1-5 \
+    | column -s, -t
 
 vendor_name  Trip_Pickup_DateTime  Trip_Dropoff_DateTime  Passenger_Count  Trip_Distance
 VTS          2009-01-04 02:52:00   2009-01-04 03:02:00    1                2.6299999999999999
@@ -275,7 +277,7 @@ user    0m16.386s
 sys     0m4.011s
 ```
 
-well that's not ideal. let's see if we can apply performance lessons from compiled languages, which can be summarized as avoid allocations and do as little work as possible. the following file has some [boiler plate](https://github.com/nathants/py-csv) elided, refer to the full [source](https://github.com/nathants/posts/tree/001/001_scaling_python_data_processing_vertically) for the details.
+well that's not ideal. let's see if we can apply performance lessons from compiled languages, which can be summarized as avoid allocations and do as little work as possible. the following file has some [boiler plate](https://github.com/nathants/py-csv) elided, refer to the full [source](https://github.com/nathants/posts/tree/001/001_scaling_python_data_processing_vertically/passenger_counts_inlined.py) for the details.
 
 ```python
 # passenger_counts_inlined.py
@@ -305,7 +307,7 @@ user    0m8.876s
 sys     0m3.108s
 ```
 
-a x2 improvement on user time, and nearly as much on wall clock. we'll take it. if interested, see futher optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
+a x2 improvement on user time, and nearly as much on wall clock. we'll take it. if interested, see further optimizations in [go, rust, and c](https://github.com/nathants/bsv/tree/master/experiments/cut).
 
 a final optimization we can make is to work with less data. since we know we only care about the first 5 columns, we can slice that out upstream.
 
@@ -503,7 +505,7 @@ sys     0m0.214s
 
 step 2 will group by passengers and count. this pipeline will run once per input file, and will run in parallel on all cpus.
 
-we will use shell redirection instead of cat for the input since it's more efficient.
+we'll use shell redirection instead of cat for the input since it's more efficient.
 
 ```python
 # group_and_count.py
@@ -611,7 +613,7 @@ since we are paying $3/hour for this instance, let's shut it down.
 >> aws-ec2-rm $id --yes'
 ```
 
-lets see how much money we spent getting this result.
+let's see how much money we spent getting this result.
 
 ```bash
 >> echo job took $(( ($(date +%s) - $start) / 60 )) minutes
