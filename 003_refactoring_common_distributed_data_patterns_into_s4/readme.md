@@ -22,7 +22,7 @@ let's break that down a bit.
 | files | group and count | files |
 | files | merge results | file |
 
-it looks like we have two types of thing going on.
+it looks like we have two types of things going on.
 
 first we have a 1:1 map of input files to output files through a command. we can imagine it as:
 
