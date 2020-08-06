@@ -36,13 +36,11 @@ before we start, let's note the time.
 now it's time to spin up our machines. the following may look familiar. it is almost identical to how we instantiated our machine for [vertical scaling](/posts/scaling-python-data-processing-vertically), except that we capture and use multiple instance `$ids` instead of just one `$id`.
 
 ```bash
->> time ids=$(
-       aws-ec2-new --type i3en.2xlarge \
-                   --num 12 \
-                   --ami arch \
-                   --profile s3-readonly \
-                   test-machines
-   )
+>> time ids=$(aws-ec2-new --type i3en.2xlarge \
+                          --num 12 \
+                          --ami arch \
+                          --profile s3-readonly \
+                          test-machines)
 
 real    1m57.050s
 user    0m3.154s
@@ -60,7 +58,7 @@ it takes a moment to format the instance store ssd, so we wait.
    '
 ```
 
-we aren't starting from a prebuilt ami, so we need to install some things.
+now we need to install some things.
 
 ```bash
 >> aws-ec2-ssh $ids --yes --cmd '
@@ -171,7 +169,7 @@ pool.thread.size = os.cpu_count()
 list(pool.thread.map(process, paths))
 ```
 
-again the local machine will orchestrate.
+the local machine will orchestrate.
 
 ```python
 # orchestrate_group_and_count.py
@@ -199,7 +197,7 @@ user    0m2.980s
 sys     0m0.933s
 ```
 
-step 3 will merge the results. this pipeline runs locally on a single core.
+step 3 will merge the results. this pipeline runs locally on a single core after fetching results from all machines with [rsync](https://wiki.archlinux.org/index.php/Rsync).
 
 ```python
 # merge_results.py
@@ -316,7 +314,7 @@ for less than $1, we analyzed a 250GB dataset with python on a cluster of twelve
 
 interestingly, this is up from 10 seconds and 60 seconds respectively in the [vertical scaling](/posts/scaling-python-data-processing-vertically) post, suggesting that both network and disk performance varies with instance size.
 
-we iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on large single machines and on multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
+we've iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on a large single machine and on multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
 
 when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
 
