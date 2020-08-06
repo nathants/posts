@@ -41,12 +41,12 @@ cat inputs/* | $command > output
 we don't have it in this pipeline, but we can imagine a third type as a 1:n map of input file to output files through a command:
 
 ```bash
-cat input | $command --outdir=outputs/ > files.txt
+cat input | $command --outdir=outputs/
 ```
 
 let's code by wishful thinking. what would our pipeline look like if we had something that helped us do these three types of things? let's imagine something like s3.
 
-first we fetch the dataset. our inputs will be keys, the outputs will be the key data, and the command will be copy. first we need to put the input data.
+first we fetch the dataset. our inputs will be keys, the outputs will be the key data, and the command will be copy. first we need to put the inputs.
 
 ```bash
 >> prefix='s3://nyc-tlc/trip data'
@@ -119,13 +119,13 @@ now we have a series of steps, mapping immutable inputs to immutable outputs. we
 
 [s3](https://aws.amazon.com/s3/) is a pinnacle of modern engineering. it scales automatically, is comically durable, quite available, and significantly cheaper than [ebs](https://aws.amazon.com/ebs/). in it's [standard](https://aws.amazon.com/s3/storage-classes/#General_purpose) storage class it replicates across availability zones without bandwidth charges. within the same region, bandwidth between ec2 and s3 is free.
 
-we want to use s3 for durability and scalability. we also want simple distributed data pipelines like we imagined above. so let's spin up a system to compliment s3. we'll call it  [s4](https://github.com/nathants/s4).
+we want to use s3 for durability and scalability. we also want simple distributed compute like we imagined above. let's spin up a system to compliment s3. we'll call it  [s4](https://github.com/nathants/s4).
 
-for a moment, let's think about scope reduction and what we don't want it to do.
+for a moment, let's think about scope reduction and what we don't want.
 - we don't want it to be highly durable or available, because we already have s3 for that.
 - we don't want it to use complicated failure handling, because we can retry idempotent commands on immutable data.
 - we don't want it to handle security or authentication, because those can be network level concerns.
-- we don't want it to allow updates to data unless explicitly deleted first, because immutability is a simplifying constraint.
+- we don't want it to allow updates to data unless explicitly deleted, because immutability is a simplifying constraint.
 
 this narrower scope means the system is easier to [use](https://github.com/nathants/s4#api), has [simpler implementation](https://github.com/nathants/s4/tree/master/s4), and is more likely to be [correct](https://github.com/nathants/s4/tree/master/tests).
 
@@ -148,7 +148,7 @@ let's give it a try. first we install [s4](https://github.com/nathants/s4#instal
 5m17.052s
 ```
 
-next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster. the machines are listening on their internal addresses, and would otherwise be inaccessible. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
+next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster because the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
 
 ```bash
 >> export region=us-east-1
@@ -158,7 +158,7 @@ next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/co
 >> bash scripts/connect_to_cluster.sh $name
 ```
 
-let's check the cluster [health](https://github.com/nathants/s4/search?q=%22def+health%22&type=Code).
+let's check the cluster [health](https://github.com/nathants/s4#s4-health).
 
 ```bash
 >> s4 health
@@ -180,7 +180,7 @@ healthy:   10.0.28.124:8080
 we want to be able to place keys on machines. we'll use [consistent hashing](https://github.com/nathants/s4/search?q=%22blake2s%22&type=Code) to automatically place or [numeric prefixes](https://github.com/nathants/s4/search?q=%22prefix.isdigit%22&type=Code) to explicitly place keys around the cluster.
 
 
-we want to be able to [put](https://github.com/nathants/s4#s4-cp), [get](https://github.com/nathants/s4#s4-cp), and [list](https://github.com/nathants/s4#s4-ls) keys across a cluster of machines. let's try putting some data.
+we want to be able to [put](https://github.com/nathants/s4#s4-cp), [get](https://github.com/nathants/s4#s4-cp), and [list](https://github.com/nathants/s4#s4-ls) keys across a cluster of machines. let's try putting some data which is explicitly placed with numeric prefixes.
 
 ```bash
 >> echo input_a | s4 cp - s4://inputs/000_machine0
@@ -251,9 +251,9 @@ key names are important, since they define data placement around the cluster.
 
 now let's try redoing the analysis from [horizontal scaling](/posts/scaling-python-data-processing-horizontally) with [s4](https://github.com/nathants/s4).
 
-we will be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are following along.
+we'll be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are following along.
 
-we will be using some [aws tooling](https://github.com/nathants/cli-aws) and the [official aws cli](https://aws.amazon.com/cli/). one could also use other tools without much trouble.
+we'll be using some [aws tooling](https://github.com/nathants/cli-aws) and the [official aws cli](https://aws.amazon.com/cli/). one could also use other tools without much trouble.
 
 we've already spun up an s4 cluster in us-east-1, but let's delete it and make a new one. clusters spin up fast and should only contain ephemeral data. they spin up even faster when using a prebuilt [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping.
 
@@ -378,7 +378,7 @@ finally we fetch the result.
 8  1609
 ```
 
-let's run at the pipeline again. note that keys cannot be updated, so before we can rerun the pipeline we have to delete intermediate results. we'll delete everything except for the inputs.
+let's run at the pipeline again. note that keys cannot be updated, so before we can rerun the pipeline we have to delete intermediate results. we'll delete everything except the inputs.
 
 ```bash
 >> s4 rm -r s4://step
@@ -421,7 +421,7 @@ performance improves, but we can no longer measure steps independently. sometime
 
 while we've got the cluster up, let's do one more thing. we haven't really flexed 1:n and n:1 maps properly yet, so let's do that. the taxi dataset is organized into files by date. let's reorganize it by passenger count. this will make it easier to answer questions about the trips for a given passenger count by without scanning the entire dataset.
 
-we're going to need a new data script for our 1:n map. it will partition data by passenger count into separate files. files with the same name will be sent to the same machine, shuffling data around the cluster. then we'll merge those into a single file. we're going to partition each passenger count into multiple files to more evenly spread the data around the cluster. we'll make 12 files per passenger count, the same as cluster size.
+we're going to need a new data script for our 1:n map. it will partition data by passenger count into separate files. these files will be shuffled around the cluster according to their name. then we'll merge files with the same name into a single file. we're going to further partition each passenger count randomly into multiple files to more evenly spread the data around the cluster. we'll make 12 files per passenger count, the same as cluster size.
 
 ```python
 # partition_by_passengers.py
@@ -476,9 +476,9 @@ for name, file in files.items():
 
 earlier we did a 1:n map, where n=1, sending all results to a single machine. here we did a 1:n map, where n>1, sending results all around the cluster.
 
-earlier we followed that with a n:1 map which ran only on a machine, since only that machine had data. here we followed that with a n:1 map which ran on every machine, merging the shuffled pieces of data back into large chunks.
+earlier we followed that with a n:1 map which ran on a single machine, since only that machine had data. here we followed that with a n:1 map which ran on every machine, since every machine had data, merging the shuffled pieces of data back into single files.
 
-since we partitioned the data in a way that spread it somewhat evenly around the cluster, we [could](https://gist.github.com/nathants/fa0044092e4c098763e35326ba704769) [see](https://nathants-public.s3-us-west-2.amazonaws.com/grid.gif) during processing that all machines were busy and then all went idle at the same time. if we hadn't partitioned this way we likely would have seen a few machines staying busy while the rest went idle.
+since we partitioned the data in a way that spread it evenly around the cluster, we [could](https://gist.github.com/nathants/fa0044092e4c098763e35326ba704769) [see](https://nathants-public.s3-us-west-2.amazonaws.com/grid.gif) during processing that all machines were busy and then all went idle at the same time. if we hadn't partitioned this way we likely would have seen a few machines staying busy while the rest went idle.
 
 let's take a peak at the data.
 
@@ -548,7 +548,7 @@ let's copy the smallest file to s4.
 let's copy the biggest file from s3 and from s4. we'll run this test on the first machine in the cluster, since the big file doesn't live on that machine.
 
 ```bash
->> id=$(aws-ec2-id $name|head -n1)
+>> id=$(aws-ec2-id $name | head -n1)
 
 >> aws-ec2-ssh $id --yes --cmd '
        time aws s3 cp "s3://nyc-tlc/trip data/yellow_tripdata_2012-03.csv" - >/dev/null
@@ -603,4 +603,4 @@ these two systems are perfect compliments. we want durability, but we don't need
 
 using s4 we can focus more on our data pipelines, and less on low level details of distributed compute. our data pipelines can start, end, and checkpoint to durable data in s3. everywhere in between they can use s4 to map arbitrary commands over ephemeral immutable data in 1:1, 1:n and n:1 operations.
 
-you can find more examples of s4 [here](https://github.com/nathants/s4/tree/master/examples), where further analysis of the nyc taxi dataset is done with python and [bsv](https://github.com/nathants/bsv). to verify results and provide a performance baseline analysis is repeated with [presto](https://prestodb.io/).
+you can find more examples of s4 [here](https://github.com/nathants/s4/tree/master/examples), where further analysis of the nyc taxi dataset is done with python and [bsv](https://github.com/nathants/bsv). to verify results and provide a performance baseline the analysis is repeated with [presto](https://prestodb.io/) on [emr](https://aws.amazon.com/emr/).
