@@ -474,7 +474,11 @@ for name, file in files.items():
 0m25.288s
 ```
 
-since we partitioned the data in a way that spread it evenly around the cluster, we could [see](https://gist.github.com/nathants/fa0044092e4c098763e35326ba704769) during processing that all machines were busy and then all went idle at the same time. if we hadn't partitioned this way we likely would have seen a few machines staying busy while the rest went idle.
+earlier we did a 1:n map, where n=1, sending all results to a single machine. here we did a 1:n map, where n>1, sending results all around the cluster.
+
+earlier we followed that with a n:1 map which ran only on a machine, since only that machine had data. here we followed that with a n:1 map which ran on every machine, merging the shuffled pieces of data back into large chunks.
+
+since we partitioned the data in a way that spread it somewhat evenly around the cluster, we [could](https://gist.github.com/nathants/fa0044092e4c098763e35326ba704769) [see](https://nathants-public.s3-us-west-2.amazonaws.com/grid.gif) during processing that all machines were busy and then all went idle at the same time. if we hadn't partitioned this way we likely would have seen a few machines staying busy while the rest went idle.
 
 let's take a peak at the data.
 
