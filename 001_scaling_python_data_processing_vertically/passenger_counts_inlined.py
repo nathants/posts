@@ -29,7 +29,7 @@ while True:
         elif read_buffer[i] == newline: # found the row end
             starts[max] = read_offset
             ends[max] = i
-            read_offset = i
+            read_offset = i + 1 # next row starts on the byte following the newline
 
             ### START CUSTOM CODE ###
             if max >= 3:
