@@ -417,4 +417,4 @@ if you are interested in bsv you can find it [here](https://github.com/nathants/
 
 for futher experimentation like what we've done today, look [here](https://github.com/nathants/bsv/tree/master/experiments).
 
-for examples of applying bsv to distributed compute, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
+for examples of applying bsv to distributed compute with comparisons to presto, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
