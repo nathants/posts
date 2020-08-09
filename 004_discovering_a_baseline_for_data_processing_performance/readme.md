@@ -415,6 +415,6 @@ as we do data processing, either by configuring and using off the shelf software
 
 if you are interested in bsv you can find it [here](https://github.com/nathants/bsv).
 
-for futher experimentation like what we've done today, look [here](https://github.com/nathants/bsv/tree/master/experiments).
+for further experimentation like what we've done today, look [here](https://github.com/nathants/bsv/tree/master/experiments).
 
 for examples of applying bsv to distributed compute with comparisons to presto, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
