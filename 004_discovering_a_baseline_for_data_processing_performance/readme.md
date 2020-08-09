@@ -96,7 +96,7 @@ user    0m3.341s
 sys     0m0.159s
 ```
 
-decently faster. we may need to look at compiled languages for a reasonable baseline.
+faster. we may need to look at compiled languages for a reasonable baseline.
 
 let's optimize by avoiding allocations and doing as little work as possible. we'll pull rows off a buffered reader, setup columns as offsets into that buffer, and access columns by slicing the row data.
 
@@ -134,7 +134,7 @@ user    0m2.491s
 sys     0m0.110s
 ```
 
-pretty much the same. let's try [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c). we'll grab a few header only dependencies from [bsv](https://github.com/nathants/bsv) for [csv parsing](https://github.com/nathants/bsv/blob/master/util/csv.h) and [buffered writing](https://github.com/nathants/bsv/blob/master/util/write_simple.h).
+pretty much the same. let's try [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c). we'll grab a few header only dependencies for [csv parsing](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/csv.h) and [buffered writing](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/write_simple.h).
 
 ```bash
 >> gcc -Iutils -O3 -flto -march=native -mtune=native -o select_c select.c
@@ -168,7 +168,7 @@ sys     0m0.170s
 
 not bad.
 
-let's try using [protobuf](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/psv.go) and [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/select.go). we'll call the format data format psv.
+let's try using [protobuf](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/psv.go) and [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/select.go). we'll call the data format psv.
 
 ```bash
 >> (cd psv && protoc -I=row --go_out=row row/row.proto)
@@ -228,19 +228,9 @@ let's implement our transformation using bsv in [c](https://github.com/nathants/
 ```bash
 >> gcc -Iutils -O3 -flto -march=native -mtune=native -o bsv/bsv bsv/bsv.c
 
->> time ./bsv/bsv </tmp/data.csv >/tmp/data.bsv
-
-real    0m3.212s
-user    0m2.760s
-sys     0m0.450s
+>> ./bsv/bsv </tmp/data.csv >/tmp/data.bsv
 
 >> gcc -Iutils -O3 -flto -march=native -mtune=native -o bsv/select bsv/select.c
-
->> ./bsv/select </tmp/data.bsv | head -n3
-
-epigram,Madeleine
-strategies,briefed
-Doritos,putsch
 
 >> ./bsv/select </tmp/data.bsv | xxhsum
 
@@ -295,6 +285,7 @@ sys     0m0.170s
 >> gcc -Iutils -O3 -flto -march=native -mtune=native -o bsv/reverse bsv/reverse.c
 
 >> ./bsv/reverse </tmp/data.bsv | xxhsum
+
 e221974c95d356f9
 
 >> time ./bsv/reverse </tmp/data.bsv >/dev/null
@@ -310,6 +301,7 @@ we'll implement it with csv in [python](https://github.com/nathants/posts/blob/0
 
 ```bash
 >> time python count.py </tmp/data.csv
+
 467002
 
 real    0m6.385s
@@ -345,7 +337,7 @@ user    0m0.135s
 sys     0m0.125s
 ```
 
-in transformations 2 and 3 we again see system time constant with variance in user time.
+in transformations 2 and 3 we again see significant variance in user time.
 
 let's put our user time results in a table.
 
@@ -379,7 +371,7 @@ third we have our count transformation, which outputs <0.001% of its input.
 | csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count.c) | 2.2 | 0.5 |
 | bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/count.c) | 0.1 | 10 |
 
-we have some interesting results here. let's take a closer look at the csv and bsv results for c based on the ratio of inputs to outputs.
+interesting. let's take a closer look at the csv and bsv results for c based on the ratio of inputs to outputs.
 
 | inputs / outputs | format | language | user seconds | gigabytes / second |
 | -- | -- | -- | -- | -- |
@@ -408,13 +400,13 @@ why don't we start with the following baseline. we'll think of it as napkin math
 | category | rate |
 | -- | -- |
 | slow | &nbsp; <=100 megabytes / second / cpu core |
-| decent | &nbsp;&nbsp; ~500 megabytes / second / cpu core |
+| decent | &nbsp;&nbsp;&nbsp; ~500 megabytes / second / cpu core |
 | fast | >=1000 megabytes / second / cpu core |
 
 as we do data processing, either by configuring and using off the shelf software, or by building bespoke systems, we can keep these rates in mind.
 
-if you are interested in bsv you can find it [here](https://github.com/nathants/bsv).
+if you are interested in bsv, you can find it [here](https://github.com/nathants/bsv).
 
-for further experimentation like what we've done today, look [here](https://github.com/nathants/bsv/tree/master/experiments).
+for further experimentation with go, rust, and c, look [here](https://github.com/nathants/bsv/tree/master/experiments).
 
-for examples of applying bsv to distributed compute with comparisons to presto, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
+for examples of applying bsv to distributed compute, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
