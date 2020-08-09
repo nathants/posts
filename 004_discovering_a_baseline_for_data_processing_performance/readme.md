@@ -8,7 +8,7 @@ whether we are configuring and using off the shelf software or building bespoke 
 
 we'll say that our data is a sequence of rows, that a row is made of 8 columns, and that a column is a random dictionary word.
 
-we'll generate our dataset as csv with the following [script]().
+we'll generate our dataset as csv with the following [script](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/gen_csv.py).
 
 ```python
 # gen_csv.py
@@ -100,7 +100,7 @@ decently faster. we may need to look at compiled languages for a reasonable base
 
 let's optimize by avoiding allocations and doing as little work as possible. we'll pull rows off a buffered reader, setup columns as offsets into that buffer, and access columns by slicing the row data.
 
-let's try [go]().
+let's try [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.go).
 
 ```bash
 >> go build -o select_go select.go
@@ -118,7 +118,7 @@ sys     0m0.312s
 
 faster than cut. this is progress.
 
-let's try [rust]().
+let's try [rust](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.rs).
 
 ```bash
 >> rustc -O -o select_rust select.rs
@@ -134,7 +134,7 @@ user    0m2.491s
 sys     0m0.110s
 ```
 
-pretty much the same. let's try [c](). we'll grab a few header only dependencies from [bsv](https://github.com/nathants/bsv) for [csv parsing](https://github.com/nathants/bsv/blob/master/util/csv.h) and [buffered writing](https://github.com/nathants/bsv/blob/master/util/write_simple.h).
+pretty much the same. let's try [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c). we'll grab a few header only dependencies from [bsv](https://github.com/nathants/bsv) for [csv parsing](https://github.com/nathants/bsv/blob/master/util/csv.h) and [buffered writing](https://github.com/nathants/bsv/blob/master/util/write_simple.h).
 
 ```bash
 >> gcc -Iutils -O3 -flto -march=native -mtune=native -o select_c select.c
@@ -150,9 +150,9 @@ user    0m2.569s
 sys     0m0.120s
 ```
 
-so [rust](), [go](), and [c]() are all basically the same. we may have established a baseline when working with csv.
+so [rust](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.rs), [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.go), and [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c) are very similar. we may have established a baseline when working with csv.
 
-let's try a similar optimization with [pypy]().
+let's try a similar optimization with [pypy](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select_inlined.py).
 
 ```bash
 >> pypy select_inlined.py </tmp/data.csv | xxhsum
@@ -168,7 +168,7 @@ sys     0m0.170s
 
 not bad.
 
-let's try using [protobuf]() and [go]().
+let's try using [protobuf](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/psv.go) and [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/select.go). we'll call the format data format psv.
 
 ```bash
 >> (cd psv && protoc -I=row --go_out=row row/row.proto)
@@ -194,7 +194,7 @@ interesting. slower than naive python and csv.
 
 is reading and writing data to some format a majority of the work?
 
-let's think about our optimized code from before. our representation of a row is 3 pieces of data. a byte array of content, an array of column start positions, and an array of column sizes. writing a row as csv was easy, but [reading]() was hard.
+let's think about our optimized code from before. our representation of a row is 3 pieces of data. a byte array of content, an array of column start positions, and an array of column sizes. writing a row as csv was easy, but [reading](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/csv.h) was hard.
 
 what if we made it easier? all we want is an array of bytes and two int arrays.
 
@@ -221,9 +221,9 @@ let's let a chunk of rows written as bytes be:
 
 let's constrain a chunk to only contain complete rows and be smaller than some maximum size.
 
-we'll call this format [bsv](). we'll implement buffered [reading]() and [writing]() of chunks, as well as [loading]() and [dumping]() of [rows]().
+we'll call this format bsv. we'll implement buffered [reading](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/read.h) and [writing](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/write.h) of chunks, as well as [loading](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/load.h) and [dumping](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/dump.h) of [rows](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/utils/row.h).
 
-let's implement our transformation using bsv in [c]().
+let's implement our transformation using bsv in [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/select.c).
 
 ```bash
 >> gcc -Iutils -O3 -flto -march=native -mtune=native -o bsv/bsv bsv/bsv.c
@@ -257,7 +257,7 @@ we've processed the same data, and system time has been fairly consistent, but u
 
 let's try a second transformation where we reverse the columns of every row.
 
-we'll implement it with csv in [python](), [pypy]() and [c](), then with bsv in [c]().
+we'll implement it with csv in [python](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse.py), [pypy](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse_inlined.py) and [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse.c), then with bsv in [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/reverse.c).
 
 ```bash
 >> python reverse.py </tmp/data.csv | xxhsum
@@ -306,7 +306,7 @@ sys     0m0.161s
 
 let's try a third transformation where we count every column where the first character of the first column is "f".
 
-we'll implement it with csv in [python](), [pypy]() and [c](), then with bsv in [c]().
+we'll implement it with csv in [python](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count.py), [pypy](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count_inlined.py) and [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count.c), then with bsv in [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/count.c).
 
 ```bash
 >> time python count.py </tmp/data.csv
@@ -353,68 +353,68 @@ first we have our select transformation, which outputs 25% of its input.
 
 | format | language | user seconds | gigabytes / second |
 | -- | -- | -- | -- |
-| psv | [go]() | 10.4 | 0.1 |
-| csv | [python]() | 9.7 | 0.1 |
-| csv | [pypy]() | 4.3 | 0.2 |
-| csv | [go]() | 2.6 | 0.4 |
-| csv | [c]() | 2.6 | 0.4 |
-| csv | [rust]() | 2.5 | 0.4 |
-| bsv | [c]() | 0.3 | 3.3 |
+| psv | [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/select.go) | 10.4 | 0.1 |
+| csv | [python](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.py) | 9.7 | 0.1 |
+| csv | [pypy](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select_inlined.py) | 4.3 | 0.2 |
+| csv | [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.go) | 2.6 | 0.4 |
+| csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c) | 2.6 | 0.4 |
+| csv | [rust](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.rs) | 2.5 | 0.4 |
+| bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/select.c) | 0.3 | 3.3 |
 
 second we have our reverse transformation, which outputs 100% of its input.
 
 | format | language | user seconds | gigabytes / second |
 | -- | -- | -- | -- |
-| csv | [python]() | 13.7 | 0.1 |
-| csv | [pypy]() | 5.8 | 0.2 |
-| csv | [c]() | 2.7 | 0.4 |
-| bsv | [c]() | 0.9 | 1.1 |
+| csv | [python](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse.py) | 13.7 | 0.1 |
+| csv | [pypy](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse_inlined.py) | 5.8 | 0.2 |
+| csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse.c) | 2.7 | 0.4 |
+| bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/reverse.c) | 0.9 | 1.1 |
 
 third we have our count transformation, which outputs <0.001% of its input.
 
 | format | language | user seconds | gigabytes / second |
 | -- | -- | -- | -- |
-| csv | [python]() | 6.2 | 0.2 |
-| csv | [pypy]() | 2.9 | 0.3 |
-| csv | [c]() | 2.2 | 0.5 |
-| bsv | [c]() | 0.1 | 10 |
+| csv | [python](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count.py) | 6.2 | 0.2 |
+| csv | [pypy](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count_inlined.py) | 2.9 | 0.3 |
+| csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count.c) | 2.2 | 0.5 |
+| bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/count.c) | 0.1 | 10 |
 
 we have some interesting results here. let's take a closer look at the csv and bsv results for c based on the ratio of inputs to outputs.
 
 | inputs / outputs | format | language | user seconds | gigabytes / second |
 | -- | -- | -- | -- | -- |
-| 1 / 1 | csv | [c]() | 2.7 | 0.4 |
-| 4 / 1 | csv | [c]() | 2.6 | 0.4 |
-| 1000 / 1 | csv | [c]() | 2.2 | 0.5 |
+| 1 / 1 | csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/reverse.c) | 2.7 | 0.4 |
+| 4 / 1 | csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c) | 2.6 | 0.4 |
+| 1000 / 1 | csv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/count.c) | 2.2 | 0.5 |
 
 | inputs / outputs | format | language | user seconds | gigabytes / second |
 | -- | -- | -- | -- | -- |
-| 1 / 1 | bsv | [c]() | 0.9 | 1.1 |
-| 4 / 1 | bsv | [c]() | 0.3 | 3.3 |
-| 1000 / 1 | bsv | [c]() | 0.1 | 10 |
+| 1 / 1 | bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/reverse.c) | 0.9 | 1.1 |
+| 4 / 1 | bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/select.c) | 0.3 | 3.3 |
+| 1000 / 1 | bsv | [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/bsv/count.c) | 0.1 | 10 |
 
 now this is interesting. when dealing with csv, the ratio of inputs to outputs has almost no impact on performance. when dealing with bsv the impact is x3 at each step. this suggests that for csv, parsing the input dominates, while for bsv, writing the output dominates. this asks an interesting question, how can we optimize output? for simplicity, the bsv code is outputting csv. it may be worth experimenting with other output formats, but we'll skip that for now.
 
 do we have enough information to establish a baseline? perhaps.
 
-we've seen [python]() process csv and [go]() process protobuf at 100 megabytes / second.
+we've seen [python](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.py) process csv and [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/psv/select.go) process protobuf at 100 megabytes / second.
 
-we've seen [c](), [go](), and [rust]() process csv at 400 megabytes / second.
+we've seen [c](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.c), [go](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.go), and [rust](https://github.com/nathants/posts/blob/004/004_discovering_a_baseline_for_data_processing_performance/select.rs) process csv at 400 megabytes / second.
 
-we've seen [c]() process bsv at 1-10 gigabytes / second.
+we've seen [c](https://github.com/nathants/posts/tree/004/004_discovering_a_baseline_for_data_processing_performance/bsv) process bsv at 1-10 gigabytes / second.
 
 why don't we start with the following baseline. we'll think of it as napkin math.
 
 | category | rate |
 | -- | -- |
-| slow | &nbsp; <100 megabytes / second / cpu core |
-| decent | &nbsp; ~500 megabytes / second / cpu core |
-| fast | >1000 megabytes / second / cpu core |
+| slow | &nbsp; <=100 megabytes / second / cpu core |
+| decent | &nbsp;&nbsp; ~500 megabytes / second / cpu core |
+| fast | >=1000 megabytes / second / cpu core |
 
 as we do data processing, either by configuring and using off the shelf software, or by building bespoke systems, we can keep these rates in mind.
 
-if you are interested in bsv you can find it [here]().
+if you are interested in bsv you can find it [here](https://github.com/nathants/bsv).
 
-for futher experimentation like what we've done today, look [here]().
+for futher experimentation like what we've done today, look [here](https://github.com/nathants/bsv/tree/master/experiments).
 
-for examples of applying bsv to distributed compute, look [here]().
+for examples of applying bsv to distributed compute, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
