@@ -1,5 +1,7 @@
 ## discovering a baseline for data processing performance
 
+full source code is available [here](https://github.com/nathants/posts/tree/004/004_discovering_a_baseline_for_data_processing_performance).
+
 performance is important, and yet our intuition about it is often wrong.
 
 let's try to discover a reasonable baseline for data processing performance and build intuition that can guide our decisions. we'll do this by experimenting with simple transformations of generated data using various formats, techniques, and languages on a single cpu core.
