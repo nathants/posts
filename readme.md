@@ -4,6 +4,8 @@ this repo contains the posts from [nathants.com](https://nathants.com/posts) as 
 
 ## posts
 
+[optimizing a bsv data processing pipeline](https://github.com/nathants/posts/pull/6)
+
 [performant batch processing with bsv, s4, and presto](https://github.com/nathants/posts/pull/5)
 
 [discovering a baseline for data processing performance](https://github.com/nathants/posts/pull/4)
