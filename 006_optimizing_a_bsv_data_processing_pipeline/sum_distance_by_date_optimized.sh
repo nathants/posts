@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+
+s4 rm -r s4://tmp/
+
+time (
+    set -x
+    time   s4   map-from-n   s4://columns/      s4://tmp/01/   'step1 2,5'
+    time   s4   map-to-n     s4://tmp/01/       s4://tmp/02/   'bpartition 1'
+    time   s4   map-from-n   s4://tmp/02/       s4://tmp/03/   'xargs cat | bsumeach-hash f64 | bschema 7,f64:a | csv'
+    time   s4   eval         s4://tmp/03/0                     'tr , " " | sort -nrk2 | head -n9'
+)
