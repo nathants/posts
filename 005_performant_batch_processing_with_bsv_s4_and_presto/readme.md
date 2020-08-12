@@ -10,7 +10,7 @@ we'll be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-
 
 we'll be using some [aws tooling](https://github.com/nathants/cli-aws) and the [official aws cli](https://aws.amazon.com/cli/). one could also use other tools without much trouble.
 
-we're going to use only the first 5 columns of data, since they are consistent across all years of the dataset. we'll create two tables so we can transform the dataset from csv into orc and get decent performance.
+we're going to only use the first 5 columns, since they are consistent across dataset. we'll create two tables so we can transform the data from csv into orc and get decent performance.
 
 ```sql
 -- schema.hql
@@ -39,7 +39,7 @@ LOCATION '/taxi/';
 
 let's spin up an [emr](https://aws.amazon.com/emr/) cluster with [hive](https://hive.apache.org/) and [presto](https://prestodb.io/). we'll size it the same as in [horizontal scaling](/posts/scaling-python-data-processing-horizontally).
 
-if you haven't used [emr](https://aws.amazon.com/emr/) before you may need to create some default iam roles, then we spin up the cluster.
+if you haven't used [emr](https://aws.amazon.com/emr/) before you may need to create some [default iam roles](https://github.com/nathants/cli-aws/blob/master/aws-iam/aws-iam-ensure-common-roles), then we [spin up](https://github.com/nathants/cli-aws/blob/master/aws-emr/aws-emr-new) the cluster.
 
 ```bash
 >> export region=us-east-1
@@ -338,7 +338,7 @@ i=0
 echo "$keys" | while read key; do
     echo $key
     num=$(printf "%03d" $i)
-    yearmonth=$(echo $key | tr -dc 0-9 | tail -c7)
+    yearmonth=$(echo $key | tr -dc 0-9 | tail -c6)
     echo $key | s4 cp - s4://inputs/${num}_${yearmonth}
     i=$((i+1))
 done
