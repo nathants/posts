@@ -2,11 +2,11 @@
 
 full source code is available [here](https://github.com/nathants/posts/tree/006/006_optimizing_a_bsv_data_processing_pipeline).
 
-in [performant batch processing](https://nathants.com/posts/performant-batch-processing-with-bsv-s4-and-presto) we composed [simple tools](https://github.com/nathants/bsv#tools) into data pipelines. there are many benefits to this. simple tools are easier to write, test, and audit. they can even be shell snippets or existing unix utilities. they can be written in any language, and can be rebuilt as needed. simple tools can compose into arbitrarily complex piplines, and if something is out of reach you can always add another [simple]() [tool](). simple tools can even be [performant]().
+in [performant batch processing](/posts/performant-batch-processing-with-bsv-s4-and-presto) we composed [simple tools](https://github.com/nathants/bsv#tools) into data pipelines. there are many benefits to this. simple tools are easier to write, test, and audit. they can even be shell snippets or existing unix utilities. they can be written in any language, and can be rebuilt as needed. simple tools can compose into arbitrarily complex piplines, and if something is out of reach you can always add another [simple](https://github.com/nathants/bsv#bquantile-sketch) [tool](https://github.com/nathants/bsv#bquantile-merge). simple tools can even be [performant](/posts/discovering-a-baseline-for-data-processing-performance).
 
-there is a cost to composing simple tools into data pipelines. primarily this cost is serialization and copies. [efficient data formats]() and [increased pipe sizes]() mitigate this, but can't eliminate it.
+there is a cost to composing simple tools into data pipelines. primarily this cost is serialization and copies. [efficient data formats](https://github.com/nathants/bsv#layout) and [increased pipe sizes](https://github.com/nathants/bsv#install) mitigate this, but not eliminate it.
 
-let's measure the cost. make sure you have [bsv]() installed.
+let's install [bsv](https://github.com/nathants/bsv#install) then measure the cost.
 
 ```bash
 >> _gen_bsv 8 12000000 > /tmp/data.bsv
@@ -41,7 +41,7 @@ let's measure the cost. make sure you have [bsv]() installed.
 
 so even when we just copy bytes with cat, we can see that as the pipeline grows, time goes up. the effect is even greater when parsing and serialization is performed at each step with bcopy.
 
-when we are doing [distributed compute]() there will be serialization. it's required before data can go over the network. for convenience, we use it between every process in the pipelines we compose from simple tools. the benefit is convenience, the cost is performance. this convenience helps us to quickly prototype pipelines and integrate new tools. once our pipelines have stabilized, we can optimize some of that out.
+when we are doing [distributed compute](/posts/refactoring-common-distributed-data-patterns-into-s4) there will be serialization. it's required before data can go over the network. for convenience, we use it between every process in the pipelines we compose from simple tools. the benefit is convenience, the cost is performance. this convenience helps us to quickly prototype pipelines and integrate new tools. once our pipelines have stabilized, we can optimize some of that out.
 
 first we need to install [s4](https://github.com/nathants/s4) and [spin up a cluster](https://github.com/nathants/s4/blob/master/scripts/new_cluster.sh). we're going to use an [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping to save time.
 
@@ -103,7 +103,7 @@ let's run it and see how long each step takes.
 0m7.655s
 ```
 
-the majority of runtime is in the first step. let's try to replace that pipeline with a single executable. we'll base it off [bzip.c](), and then insert functionality from [bschema]() and [bsumeach-hash](). let's look at the diff of our new [step1.c]() against the original [bzip.c]().
+the majority of runtime is in the first step. let's try to replace that pipeline with a single executable. we'll base it off [bzip.c](https://github.com/nathants/bsv/blob/master/src/bzip.c), and then insert functionality from [bschema.c](https://github.com/nathants/bsv/blob/master/src/bschema.c) and [bsumeach_hash.c](https://github.com/nathants/bsv/blob/master/src/bsumeach_hash.c). let's look at the diff of our new [step1.c](https://github.com/nathants/posts/blob/006/006_optimizing_a_bsv_data_processing_pipeline/step1.c) against the original [bzip.c](https://github.com/nathants/bsv/blob/master/src/bzip.c).
 
 ```c
 diff --git a/~/repos/bsv/src/bzip.c b/step1.c
@@ -172,7 +172,7 @@ index d393f10..4e12b7a 100644
  }
 ```
 
-then let's ship it to the cluster and compile it.
+let's ship it to the cluster and compile it.
 
 ```bash
 >> aws-ec2-scp step1.c : s4-cluster --yes
