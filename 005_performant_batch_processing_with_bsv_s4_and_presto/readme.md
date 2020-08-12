@@ -115,7 +115,7 @@ LIMIT 9;
        NULL |     527580
           7 |       2040
 
-real    0m5.775s
+0m5.775s
 ```
 
 more grouping and counting.
@@ -142,7 +142,7 @@ LIMIT 9;
   2010 |     9 | 15540209
   2010 |     5 | 15481351
 
-real    0m10.556s
+0m10.556s
 ```
 
 grouping and accumulating.
@@ -169,7 +169,7 @@ LIMIT 9;
   2015 |     1 | 171590254
   2015 |     6 | 145792590
 
-real    0m9.844s
+0m9.844s
 ```
 
 finding large values.
@@ -195,7 +195,7 @@ LIMIT 9;
   15331800
   15328400
 
-real    0m5.916s
+0m5.916s
 ```
 
 distributed sort.
@@ -246,7 +246,7 @@ first we need to install [s4](https://github.com/nathants/s4) and [spin up a clu
 
 >> name=s4-cluster
 
->> time type=i3en.xlarge ami=s4 num=12 bash scripts/new_cluster.sh $name
+>> time type=i3en.2xlarge ami=s4 num=12 bash scripts/new_cluster.sh $name
 
 3m41.060s
 ```
@@ -372,7 +372,7 @@ let's run it.
 ```bash
 >> bash schema.sh
 
-1m55.736s
+1m11.860s
 ```
 
 now that we have a cluster with data, we can do our analysis.
@@ -419,7 +419,7 @@ let's run it.
 7 2040
 8 1609
 
-real    0m3.815s
+0m2.616s
 ```
 
 more grouping and counting.
@@ -465,7 +465,7 @@ let's run it.
 2010-09 15540209
 2010-05 15481351
 
-0m5.175s
+0m3.399s
 ```
 
 grouping and accumulating.
@@ -515,7 +515,7 @@ let's run it.
 2015-01 171590254.990021
 2015-06 145792590.1599617
 
-real    0m10.325s
+0m7.130s
 ```
 
 finding large values.
@@ -565,7 +565,7 @@ let's run it.
 15331800
 15328400
 
-0m3.448s
+0m2.832s
 ```
 
 distributed sort.
@@ -607,7 +607,7 @@ let's run it.
 ```bash
 >> bash sort_by_distance.sh
 
-2m25.848s
+2m10.216s
 ```
 
 we're done for now, so let's delete the cluster.
@@ -620,13 +620,13 @@ let's put our results in a table.
 
 | query | presto seconds | s4 seconds |
 | -- | -- | -- |
-| count rides by passengers | [6](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.pql) | [4](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.sh) |
-| count rides by date | [11](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.pql) | [5](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.sh) |
-| sum distance by date | [10](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sum_distance_by_date.pql) | [10](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sum_distance_by_date.sh) |
+| count rides by passengers | [6](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.pql) | [3](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.sh) |
+| count rides by date | [11](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.pql) | [3](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.sh) |
+| sum distance by date | [10](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sum_distance_by_date.pql) | [7](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sum_distance_by_date.sh) |
 | top n by distance | [6](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/top_n_by_distance.pql) | [3](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/top_n_by_distance.sh) |
-| distributed sort | [584](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sort_by_distance.pql) | [146](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sort_by_distance.sh) |
+| distributed sort | [584](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sort_by_distance.pql) | [130](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sort_by_distance.sh) |
 
-so [s4](https://github.com/nathants/s4) and [bsv](https://github.com/nathants/bsv) meets or exceeds our performance baseline. we could use it for batch processing, but should we? it depends.
+so [s4](https://github.com/nathants/s4) and [bsv](https://github.com/nathants/bsv) exceeds our performance baseline. we could use it for batch processing. should we? it depends.
 
 let's look again at one of the queries.
 
@@ -671,21 +671,21 @@ the s4 query has multiple explicit steps which are easy to analyze and measure i
 
 + s4 map 's4://columns/*/*_5' s4://tmp/01/ 'bsort -r f64'
 ok ok ok ok ok ok ok ok ok ok ok ok
-0m34.438s
+0m21.215s
 
 + s4 map-from-n s4://tmp/01/ s4://tmp/02/ 'bmerge -r f64'
 ok ok ok ok ok ok ok ok ok ok ok ok
-0m2.928s
+0m1.815s
 
 + s4 map-to-n s4://tmp/02/ s4://tmp/03/ 'bpartition -l 1'
 ok ok ok ok ok ok ok ok ok ok ok ok
-0m1.738s
+0m1.432s
 
 + s4 map-from-n s4://tmp/03/ s4://tmp/04/ 'bmerge -lr f64 | blz4'
 ok
-1m46.744s
+1m43.728s
 
-2m25.848s
+2m10.216s
 ```
 
 as we might expect, the final merge on a single machine is slow. surprisingly, the merge and shuffle steps were very fast. i wonder how much time shuffle took for presto?
