@@ -4,7 +4,7 @@ full source code is available [here](https://github.com/nathants/posts/tree/005/
 
 we looked at scaling python batch processing [vertically](/posts/scaling-python-data-processing-vertically) and [horizontally](/posts/scaling-python-data-processing-horizontally). we [refactored](/posts/refactoring-common-distributed-data-patterns-into-s4) the details of distributed compute out of our code. we discovered a [reasonable baseline](/posts/discovering-a-baseline-for-data-processing-performance) for data processing performance on a single cpu core.
 
-let's build on these experiences and revisit the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset. we'll use [presto](https://prestodb.io/) as a performance and correctness baseline to evaluate identical analyis with [bsv](https://github.com/nathants/bsv) on a [s4](https://github.com/nathants/s4) cluster.
+let's build on these experiences and revisit the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset. we'll use [presto](https://prestodb.io/) as a performance and correctness baseline to evaluate identical analysis with [bsv](https://github.com/nathants/bsv) on a [s4](https://github.com/nathants/s4) cluster.
 
 we'll be working with the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset in the aws region where it lives, us-east-1. bandwidth between ec2 and s3 is only free within the same region, so make sure you are in us-east-1 if you are following along.
 
@@ -37,9 +37,9 @@ STORED AS ORC
 LOCATION '/taxi/';
 ```
 
-let's spinup an [emr](https://aws.amazon.com/emr/) cluster with [hive](https://hive.apache.org/) and [presto](https://prestodb.io/). we'll size it the same as in [horizontal scaling](/posts/scaling-python-data-processing-horizontally).
+let's spin up an [emr](https://aws.amazon.com/emr/) cluster with [hive](https://hive.apache.org/) and [presto](https://prestodb.io/). we'll size it the same as in [horizontal scaling](/posts/scaling-python-data-processing-horizontally).
 
-if you haven't used [emr](https://aws.amazon.com/emr/) before you may need to create some default iam roles, then we spinup the cluster.
+if you haven't used [emr](https://aws.amazon.com/emr/) before you may need to create some default iam roles, then we spin up the cluster.
 
 ```bash
 >> export region=us-east-1
@@ -618,7 +618,7 @@ we're done for now, so let's delete the cluster.
 
 let's put our results in a table.
 
-| query | presto seconds | s4 seconcds |
+| query | presto seconds | s4 seconds |
 | -- | -- | -- |
 | count rides by passengers | [6](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.pql) | [4](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.sh) |
 | count rides by date | [11](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.pql) | [5](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.sh) |
@@ -664,7 +664,7 @@ the s4 query has explicit intermediate results, which are accessible.
 
 the presto query has multiple implicit steps which are difficult to analyze and measure independently.
 
-the s4 query has multiple explicit steps which are easy to analyze and measure independently. in fact, we ommited it from the results before, but the s4 query timed each step.
+the s4 query has multiple explicit steps which are easy to analyze and measure independently. in fact, we omitted it from the results before, but the s4 query timed each step.
 
 ```bash
 >> bash sort_by_distance.sh
@@ -688,7 +688,7 @@ ok
 2m25.848s
 ```
 
-as we might expect, the final merge on a single machine is slow. surpsingly, the merge and shuffle steps were very fast. i wonder how much time shuffle took for presto?
+as we might expect, the final merge on a single machine is slow. surprisingly, the merge and shuffle steps were very fast. i wonder how much time shuffle took for presto?
 
 [presto](https://prestodb.io/) is excellent, and significantly faster than the [previous generation](https://hive.apache.org/). it should be used, at a minimum, to check the correctness of your batch processing.
 
