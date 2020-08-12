@@ -2,9 +2,9 @@
 
 full source code is available [here](https://github.com/nathants/posts/tree/006/006_optimizing_a_bsv_data_processing_pipeline).
 
-in [performant batch processing](/posts/performant-batch-processing-with-bsv-s4-and-presto) we composed [simple tools](https://github.com/nathants/bsv#tools) into data pipelines. there are many benefits to this. simple tools are easier to write, test, and audit. they can even be shell snippets or existing unix utilities. they can be written in any language, and can be rebuilt as needed. simple tools can compose into arbitrarily complex piplines, and if something is out of reach you can always add another [simple](https://github.com/nathants/bsv#bquantile-sketch) [tool](https://github.com/nathants/bsv#bquantile-merge). simple tools can even be [performant](/posts/discovering-a-baseline-for-data-processing-performance).
+in [performant batch processing](/posts/performant-batch-processing-with-bsv-s4-and-presto) we composed [simple tools](https://github.com/nathants/bsv#tools) into data pipelines. there are many benefits to this. simple tools are easier to write, test, and audit. they can even be shell snippets or existing unix utilities. they can be written in any language and rebuilt as needed. simple tools can compose into arbitrarily complex pipelines, and if something is out of reach you can always add another [simple](https://github.com/nathants/bsv#bquantile-sketch) [tool](https://github.com/nathants/bsv#bquantile-merge). simple tools can even be [performant](/posts/discovering-a-baseline-for-data-processing-performance).
 
-there is a cost to composing simple tools into data pipelines. primarily this cost is serialization and copies. [efficient data formats](https://github.com/nathants/bsv#layout) and [increased pipe sizes](https://github.com/nathants/bsv#install) mitigate this, but not eliminate it.
+there is a cost to composing simple tools into data pipelines. primarily this cost is serialization and copies. [efficient data formats](https://github.com/nathants/bsv#layout) and [increased pipe sizes](https://github.com/nathants/bsv#install) mitigate this, but don't eliminate it.
 
 let's install [bsv](https://github.com/nathants/bsv#install) then measure the cost.
 
@@ -39,9 +39,9 @@ let's install [bsv](https://github.com/nathants/bsv#install) then measure the co
 0m1.432s
 ```
 
-so even when we just copy bytes with cat, we can see that as the pipeline grows, time goes up. the effect is even greater when parsing and serialization is performed at each step with bcopy.
+so even when we just copy bytes with cat, we can see that as the pipeline grows, time goes up. the effect is even greater when parsing and serialization is performed at each step with [bcopy](https://github.com/nathants/bsv/blob/master/src/bcopy.c).
 
-when we are doing [distributed compute](/posts/refactoring-common-distributed-data-patterns-into-s4) there will be serialization. it's required before data can go over the network. for convenience, we use it between every process in the pipelines we compose from simple tools. the benefit is convenience, the cost is performance. this convenience helps us to quickly prototype pipelines and integrate new tools. once our pipelines have stabilized, we can optimize some of that out.
+when we are doing [distributed compute](/posts/refactoring-common-distributed-data-patterns-into-s4) there will be serialization. it's required before data can go over the network. for convenience, we use it between every process in the pipelines we compose to simplify their interface. the benefit is convenience, the cost is performance. this convenience helps us to quickly prototype pipelines and integrate new tools. once our pipelines have stabilized, we can optimize it out.
 
 first we need to install [s4](https://github.com/nathants/s4) and [spin up a cluster](https://github.com/nathants/s4/blob/master/scripts/new_cluster.sh). we're going to use an [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping to save time.
 
@@ -218,4 +218,8 @@ we're done for now, so let's delete the cluster.
 >> aws-ec2-rm $name --yes
 ```
 
-composing data pipelines from simple tools is an effective way to rapidly prototype. reusing the same serialization between local and distributed processes we can build and use tools that don't care whether data is coming from or going to a file, a pipe, or a socket. once our prototypes have stabilized, we can optimize them by collapsing pipelines into single executables.
+composing data pipelines from simple tools is an effective way to rapidly prototype.
+
+reusing the same serialization between local and distributed processes we can build and use tools that don't care whether data is coming from or going to a file, a pipe, or a socket.
+
+once our prototypes have stabilized, we can optimize them by collapsing pipelines into a single executable.
