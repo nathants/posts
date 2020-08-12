@@ -4,6 +4,8 @@ this repo contains the posts from [nathants.com](https://nathants.com/posts) as 
 
 ## posts
 
+[performant batch processing with bsv, s4, and presto](https://github.com/nathants/posts/pull/5)
+
 [discovering a baseline for data processing performance](https://github.com/nathants/posts/pull/4)
 
 [refactoring common distributed data patterns into s4](https://github.com/nathants/posts/pull/3)
