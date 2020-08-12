@@ -1,6 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-cd $(dirname $0)
 
 s4 rm -r s4://tmp/
 
