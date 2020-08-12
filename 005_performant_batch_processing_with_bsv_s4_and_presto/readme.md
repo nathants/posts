@@ -620,13 +620,13 @@ let's put our results in a table.
 
 | query | presto seconds | s4 seconcds |
 | -- | -- | -- |
-| count rides by passengers | [6]() | [4]() |
-| count rides by date | [11]() | [5]() |
-| sum distance by date | [10]() | [10]() |
-| top n by distance | [6]() | [3]() |
-| distributed sort | [584]() | [146]() |
+| count rides by passengers | [6](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.pql) | [4](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_passengers.sh) |
+| count rides by date | [11](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.pql) | [5](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/count_rides_by_date.sh) |
+| sum distance by date | [10](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sum_distance_by_date.pql) | [10](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sum_distance_by_date.sh) |
+| top n by distance | [6](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/top_n_by_distance.pql) | [3](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/top_n_by_distance.sh) |
+| distributed sort | [584](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sort_by_distance.pql) | [146](https://github.com/nathants/posts/blob/005/005_performant_batch_processing_with_bsv_s4_and_presto/sort_by_distance.sh) |
 
-so [s4]() and [bsv]() meets or exceeds our performance baseline. we could use it for batch processing instead of [presto](), but should we? it depends.
+so [s4](https://github.com/nathants/s4) and [bsv](https://github.com/nathants/bsv) meets or exceeds our performance baseline. we could use it for batch processing, but should we? it depends.
 
 let's look again at one of the queries.
 
@@ -690,6 +690,6 @@ ok
 
 as we might expect, the final merge on a single machine is slow. surpsingly, the merge and shuffle steps were very fast. i wonder how much time shuffle took for presto?
 
-[presto]() is excellent, and significantly faster than the [previous generation](). it should be used, at a minimum, to check the correctness of your batch processing.
+[presto](https://prestodb.io/) is excellent, and significantly faster than the [previous generation](https://hive.apache.org/). it should be used, at a minimum, to check the correctness of your batch processing.
 
-[s4]() and [bsv]() are primitives for distributed data processing. they are low level, high performance, and flexible. they should be used, at a minimum, to establish a performance baseline.
+[s4](https://github.com/nathants/s4) and [bsv](https://github.com/nathants/bsv) are primitives for distributed data processing. they are low level, high performance, and flexible. they should be used, at a minimum, to establish a performance baseline.
