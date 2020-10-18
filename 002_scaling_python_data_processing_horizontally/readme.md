@@ -316,7 +316,7 @@ interestingly, this is up from 10 seconds and 60 seconds respectively in the [ve
 
 we've iterated rapidly on local code with a sample of data, and in production with all of the data. we've experimented with several options for a simple data pipeline on a large single machine and on multiple small machines. we've answered some questions, and discovered more. we did all of this simply, quickly, and for less than the cost of a cup of coffee. most importantly, it was fun.
 
-when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
+when analyzing data, it's always good to check the results with an alternate implementation. if they disagree, at least one of them is wrong. you can find alternate implementations of this analysis [here](https://github.com/nathants/s4/tree/go/examples/nyc_taxi_bsv).
 
 just for fun, let's try vertical and horizontal scaling together with four i3en.24xlarge. we'll be using the [basic](https://github.com/nathants/bootstraps/blob/master/amis/basic.sh) ami instead of live bootstrapping.
 
