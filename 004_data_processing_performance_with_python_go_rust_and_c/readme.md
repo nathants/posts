@@ -411,4 +411,4 @@ if you are interested in bsv, you can find it [here](https://github.com/nathants
 
 for further experimentation with go, rust, and c, look [here](https://github.com/nathants/bsv/tree/master/experiments).
 
-for examples of applying bsv to distributed compute, look [here](https://github.com/nathants/s4/tree/master/examples/nyc_taxi_bsv).
+for examples of applying bsv to distributed compute, look [here](https://github.com/nathants/s4/tree/go/examples/nyc_taxi_bsv).
