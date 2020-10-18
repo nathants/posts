@@ -43,7 +43,7 @@ so even when we just copy bytes with cat, we can see that as the pipeline grows,
 
 when we are doing [distributed compute](/posts/refactoring-common-distributed-data-patterns-into-s4) there will be serialization. it's required before data can go over the network. for convenience, we use it between every process in the pipelines we compose to simplify their interface. the benefit is convenience, the cost is performance. this convenience helps us to quickly prototype pipelines and integrate new tools. once our pipelines have stabilized, we can optimize it out.
 
-first we need to install [s4](https://github.com/nathants/s4) and [spin up a cluster](https://github.com/nathants/s4/blob/master/scripts/new_cluster.sh). we're going to use an [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping to save time.
+first we need to install [s4](https://github.com/nathants/s4) and [spin up a cluster](https://github.com/nathants/s4/tree/go/scripts/new_cluster.sh). we're going to use an [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping to save time.
 
 ```bash
 >> git clone https://github.com/nathants/s4
@@ -59,7 +59,7 @@ first we need to install [s4](https://github.com/nathants/s4) and [spin up a clu
 >> type=i3en.2xlarge ami=s4 num=12 bash scripts/new_cluster.sh $name
 ```
 
-next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
+next we'll [proxy traffic](https://github.com/nathants/s4/tree/go/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
 
 ```bash
 >> export region=us-east-1
