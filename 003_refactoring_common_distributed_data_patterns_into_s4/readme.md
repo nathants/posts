@@ -127,9 +127,9 @@ for a moment, let's think about scope reduction and what we don't want.
 - we don't want it to handle security or authentication, because those can be network level concerns.
 - we don't want it to allow updates to data unless explicitly deleted, because immutability is a simplifying constraint.
 
-this narrower scope means the system is easier to [use](https://github.com/nathants/s4#api), has [simpler implementation](https://github.com/nathants/s4/tree/master/s4), and is more likely to be [correct](https://github.com/nathants/s4/tree/master/tests).
+this narrower scope means the system is easier to [use](https://github.com/nathants/s4#api), has [simpler implementation](https://github.com/nathants/s4/tree/go/s4.go), and is more likely to be [correct](https://github.com/nathants/s4/tree/go/tests).
 
-let's give it a try. first we install [s4](https://github.com/nathants/s4#install) and then spin up a [cluster](https://github.com/nathants/s4/blob/master/scripts/new_cluster.sh). we'll size the cluster the same as we did in [horizontal scaling](/posts/scaling-python-data-processing-horizontally).
+let's give it a try. first we install [s4](https://github.com/nathants/s4#install) and then spin up a [cluster](https://github.com/nathants/s4/tree/go/scripts/new_cluster.sh). we'll size the cluster the same as we did in [horizontal scaling](/posts/scaling-python-data-processing-horizontally).
 
 ```bash
 
@@ -148,7 +148,7 @@ let's give it a try. first we install [s4](https://github.com/nathants/s4#instal
 5m17.052s
 ```
 
-next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
+next we'll [proxy traffic](https://github.com/nathants/s4/tree/go/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
 
 ```bash
 >> export region=us-east-1
@@ -177,7 +177,7 @@ healthy:   10.0.26.213:8080
 healthy:   10.0.28.124:8080
 ```
 
-we want to be able to place keys on machines. we'll use [consistent hashing](https://github.com/nathants/s4/search?q=%22blake2s%22&type=Code) to automatically place or [numeric prefixes](https://github.com/nathants/s4/search?q=%22prefix.isdigit%22&type=Code) to explicitly place keys around the cluster.
+we want to be able to place keys on machines. we'll use [consistent hashing](https://github.com/nathants/s4/search?q=%22func+hash%22&type=Code) to automatically place or [numeric prefixes](https://github.com/nathants/s4/search?q=%22func KeyPrefix%22&type=Code) to explicitly place keys around the cluster.
 
 
 we want to be able to [put](https://github.com/nathants/s4#s4-cp), [get](https://github.com/nathants/s4#s4-cp), and [list](https://github.com/nathants/s4#s4-ls) keys across a cluster of machines. let's try putting some data which is explicitly placed with numeric prefixes.
@@ -603,4 +603,4 @@ these two systems are perfect compliments. we want durability, but we don't need
 
 using s4 we can focus more on our data pipelines, and less on low level details of distributed compute. our data pipelines can start, end, and checkpoint to durable data in s3. everywhere in between they can use s4 to map arbitrary commands over ephemeral immutable data in 1:1, 1:n and n:1 operations.
 
-you can find more examples of s4 [here](https://github.com/nathants/s4/tree/master/examples), where further analysis of the nyc taxi dataset is done with python and [bsv](https://github.com/nathants/bsv). to verify results and provide a performance baseline the analysis is repeated with [presto](https://prestodb.io/) on [emr](https://aws.amazon.com/emr/).
+you can find more examples of s4 [here](https://github.com/nathants/s4/tree/go/examples), where further analysis of the nyc taxi dataset is done with python and [bsv](https://github.com/nathants/bsv). to verify results and provide a performance baseline the analysis is repeated with [presto](https://prestodb.io/) on [emr](https://aws.amazon.com/emr/).
