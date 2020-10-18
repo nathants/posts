@@ -233,7 +233,7 @@ finally we shutdown the cluster.
 
 now let's redo the analysis with [bsv](https://github.com/nathants/bsv) and [s4](https://github.com/nathants/s4).
 
-first we need to install [s4](https://github.com/nathants/s4) and [spin up a cluster](https://github.com/nathants/s4/blob/master/scripts/new_cluster.sh). we're going to use an [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping to save time.
+first we need to install [s4](https://github.com/nathants/s4) and [spin up a cluster](https://github.com/nathants/s4/tree/go/scripts/new_cluster.sh). we're going to use an [ami](https://github.com/nathants/bootstraps/blob/master/amis/s4.sh) instead of live bootstrapping to save time.
 
 ```bash
 >> git clone https://github.com/nathants/s4
@@ -251,7 +251,7 @@ first we need to install [s4](https://github.com/nathants/s4) and [spin up a clu
 3m41.060s
 ```
 
-next we'll [proxy traffic](https://github.com/nathants/s4/blob/master/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
+next we'll [proxy traffic](https://github.com/nathants/s4/tree/go/scripts/connect_to_cluster.sh) through a machine in the cluster. assuming the security group only allows port 22, the machines are only accessible on their internal addresses. since we already have ssh setup, we'll use [sshuttle](https://github.com/sshuttle/sshuttle). run this in a second terminal, and don't forget to set region to us-east-1.
 
 ```bash
 >> export region=us-east-1
