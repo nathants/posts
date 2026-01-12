@@ -1,6 +1,6 @@
 ## what
 
-this repo contains the posts from [nathants.com](https://nathants.com/posts).
+this repo contains the posts from [nathants.com](https://nathants.com).
 
 ## posts
 
