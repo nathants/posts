@@ -1,6 +1,6 @@
 ## performant batch processing with bsv, s4, and presto
 
-full source code is available [here](https://github.com/nathants/posts/tree/005/005_performant_batch_processing_with_bsv_s4_and_presto).
+full source code is available [here](https://github.com/nathants/posts/tree/master/005_performant_batch_processing_with_bsv_s4_and_presto).
 
 we looked at scaling python batch processing [vertically](/posts/scaling-python-data-processing-vertically) and [horizontally](/posts/scaling-python-data-processing-horizontally). we [refactored](/posts/refactoring-common-distributed-data-patterns-into-s4) the details of distributed compute out of our code. we discovered a [reasonable baseline](/posts/data-processing-performance-with-python-go-rust-and-c) for data processing performance on a single cpu core.
 

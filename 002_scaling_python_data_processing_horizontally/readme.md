@@ -1,6 +1,6 @@
 ## scaling python data processing horizontally
 
-full source code is available [here](https://github.com/nathants/posts/tree/002/002_scaling_python_data_processing_horizontally).
+full source code is available [here](https://github.com/nathants/posts/tree/master/002_scaling_python_data_processing_horizontally).
 
 we scaled an analysis of the nyc taxi dataset [vertically](/posts/scaling-python-data-processing-vertically) on a single machine, now let's scale horizontally on multiple machines. instead of a single i3en.24xlarge we'll use twelve i3en.2xlarge.
 

@@ -1,6 +1,6 @@
 ## optimizing a bsv data processing pipeline
 
-full source code is available [here](https://github.com/nathants/posts/tree/006/006_optimizing_a_bsv_data_processing_pipeline).
+full source code is available [here](https://github.com/nathants/posts/tree/master/006_optimizing_a_bsv_data_processing_pipeline).
 
 in [performant batch processing](/posts/performant-batch-processing-with-bsv-s4-and-presto) we composed [simple tools](https://github.com/nathants/bsv#tools) into data pipelines. there are many benefits to this. simple tools are easier to write, test, and audit. they can even be shell snippets or existing unix utilities. they can be written in any language and rebuilt as needed. simple tools can compose into arbitrarily complex pipelines, and if something is out of reach you can always add another [simple](https://github.com/nathants/bsv#bquantile-sketch) [tool](https://github.com/nathants/bsv#bquantile-merge). simple tools can even be [performant](/posts/data-processing-performance-with-python-go-rust-and-c).
 

@@ -1,6 +1,6 @@
 ## scaling python data processing vertically
 
-full source code is available [here](https://github.com/nathants/posts/tree/001/001_scaling_python_data_processing_vertically).
+full source code is available [here](https://github.com/nathants/posts/tree/master/001_scaling_python_data_processing_vertically).
 
 processing inconveniently large data is a common task these days, and there are many tools and techniques available to help. here we are going to explore how far we can take python on a single machine.
 

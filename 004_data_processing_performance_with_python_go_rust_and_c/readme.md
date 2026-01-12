@@ -1,6 +1,6 @@
 ## data processing performance with python, go, rust, and c
 
-full source code is available [here](https://github.com/nathants/posts/tree/004/004_data_processing_performance_with_python_go_rust_and_c).
+full source code is available [here](https://github.com/nathants/posts/tree/master/004_data_processing_performance_with_python_go_rust_and_c).
 
 performance is important, and yet our intuition about it is often wrong. [previously](/posts/refactoring-common-distributed-data-patterns-into-s4) we deployed optimized python across a cluster of machines to analyze the [nyc taxi](https://registry.opendata.aws/nyc-tlc-trip-records-pds/) dataset. how was its performance?
 

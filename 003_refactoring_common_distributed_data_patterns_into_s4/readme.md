@@ -1,6 +1,6 @@
 ## refactoring common distributed data patterns into s4
 
-full source code is available [here](https://github.com/nathants/posts/tree/003/003_refactoring_common_distributed_data_patterns_into_s4).
+full source code is available [here](https://github.com/nathants/posts/tree/master/003_refactoring_common_distributed_data_patterns_into_s4).
 
 in [horizontal scaling](/posts/scaling-python-data-processing-horizontally) we manually managed distributed compute across a cluster of machines. we used ssh to execute commands. we created directories and files to hold results. we used rsync to fetch results from multiple machines and merged them locally. we manually managed parallelism in our data scripts.
 
