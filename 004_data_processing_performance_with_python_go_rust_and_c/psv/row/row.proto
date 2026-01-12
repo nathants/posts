@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package row;
+
+message Row {
+    bytes column0 = 1;
+    bytes column1 = 2;
+    bytes column2 = 3;
+    bytes column3 = 4;
+    bytes column4 = 5;
+    bytes column5 = 6;
+    bytes column6 = 7;
+    bytes column7 = 8;
+};
